@@ -25,7 +25,14 @@ mod REFLECT {
 
     #[constructor]
     fn constructor(ref self: ContractState) {
-        // Initialization logic similar to Solidity's constructor
+        self._name.write('reflect.primitives');
+        self._symbol.write('RPI');
+        self._decimals.write(9);
+        self._tTotal.write(10 * 10**6 * 10**9);
+        self._rTotal.write(u256::max() - (u256::max() % self._tTotal.read()));
+        let sender = get_caller_address();
+        self._rOwned.write(sender, self._rTotal.read());
+        // Emit Transfer event
     }
 
     // ... ERC20 functions ...
