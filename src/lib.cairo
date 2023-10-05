@@ -1,45 +1,36 @@
-// ** ./src/lib.cairo **
-
-#[starknet::interface]
-trait MyContractInterface<T> {
-    fn name_get(self: @T) -> felt252;
-    fn name_set(ref self: T, name: felt252);
-}
-
 #[starknet::contract]
-mod my_contract {
+mod REFLECT {
+    use integer::BoundedInt;
+    use openzeppelin::token::erc20::interface::IERC20;
+    use starknet::ContractAddress;
+    use starknet::get_caller_address;
+    use zeroable::Zeroable;
+
     #[storage]
     struct Storage {
-        name: felt252,
+        _rOwned: LegacyMap<ContractAddress, u256>,
+        _tOwned: LegacyMap<ContractAddress, u256>,
+        _allowances: LegacyMap<(ContractAddress, ContractAddress), u256>,
+        // _isExcluded: LegacyMap<ContractAddress, bool>,
+        // _excluded: LegacyArray<ContractAddress>,
+        _rTotal: u256,
+        _tTotal: u256,
+        _tFeeTotal: u256,
+        _name: felt252,
+        _symbol: felt252,
+        _decimals: u8
     }
 
-    #[event]
-    #[derive(Drop, starknet::Event)]
-    enum Event {
-        NameChanged: NameChanged,
-    }
-
-    #[derive(Drop, starknet::Event)]
-    struct NameChanged {
-        previous: felt252,
-        current: felt252,
-    }
+    // ... Events and other necessary structs ...
 
     #[constructor]
-    fn constructor(ref self: ContractState, name: felt252) {
-        self.name.write(name);
+    fn constructor(ref self: ContractState) {
+        // Initialization logic similar to Solidity's constructor
     }
 
-    #[external(v0)]
-    impl MyContract of super::MyContractInterface<ContractState> {
-        fn name_get(self: @ContractState) -> felt252 {
-            self.name.read()
-        }
+    // ... ERC20 functions ...
 
-        fn name_set(ref self: ContractState, name: felt252) {
-            let previous = self.name.read();
-            self.name.write(name);
-            self.emit(NameChanged { previous, current: name });
-        }
-    }
+    // ... Reflection logic ...
+
+    // ... Utility functions ...
 }
