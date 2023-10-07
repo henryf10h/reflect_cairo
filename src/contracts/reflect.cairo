@@ -164,5 +164,30 @@ mod REFLECT {
 
     // ... Reflection logic ...
 
+    #[external(v0)]
+    impl REFLECTImpl of IREFLECT<ContractState> {
+        fn is_excluded(self: @ContractState) -> bool{
+            true
+        }
+        fn total_fees(self: @ContractState) -> felt252{
+            123
+        }
+        fn reflect(ref self: ContractState) -> bool{
+            true
+        } //return boolean for reflect
+        fn reflection_from_token(self: @ContractState) -> u256{
+            123
+        }
+        fn token_from_reflection(self: @ContractState, account: ContractAddress) -> u256{
+            1
+        }
+        fn exclude_account(ref self: ContractState, owner: ContractAddress, spender: ContractAddress) -> bool{
+            true
+        }//return boolean for include
+        fn include_account(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool{
+            true
+        }//return boolean for exclude
+    }
+
     // ... Utility functions ...
 }
