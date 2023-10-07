@@ -5,7 +5,7 @@ mod REFLECT {
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use zeroable::Zeroable;
-    use reflect_cairo::interfaces::rinterface;
+    use reflect_cairo::interfaces::rinterface::IREFLECT;
 
     #[storage]
     struct Storage {
