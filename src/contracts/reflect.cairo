@@ -196,6 +196,38 @@ mod REFLECT {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
+
+        fn _reflect_fee(ref self: ContractState, r_fee: u256, t_fee: u256) {
+            self._rTotal.write(self._rTotal.read() - r_fee);
+            self._tFeeTotal.write(self._tFeeTotal.read() + t_fee);
+        }
+
+        fn _get_values(self: @ContractState, t_amount: u256) -> (u256, u256, u256, u256, u256) {
+            let (t_transfer_amount, t_fee) = self._get_t_values(t_amount);
+            let current_rate = self._get_rate();
+            let (r_amount, r_transfer_amount, r_fee) = self._get_r_values(t_amount, t_fee, current_rate);
+            return (r_amount, r_transfer_amount, r_fee, t_transfer_amount, t_fee);
+        }
+
+        fn _get_t_values(self: @ContractState, t_amount: u256) -> (u256, u256) {
+            let t_fee = t_amount / 100;
+            let t_transfer_amount = t_amount - t_fee;
+            return (t_transfer_amount, t_fee);
+        }
+
+        fn _get_r_values(self: @ContractState, t_amount: u256, t_fee: u256, current_rate: u256) -> (u256, u256, u256) {
+            let r_amount = t_amount * current_rate;
+            let r_fee = t_fee * current_rate;
+            let r_transfer_amount = r_amount - r_fee;
+            return (r_amount, r_transfer_amount, r_fee);
+        }
+
+
+        fn _get_rate(self: @ContractState) -> u256 {
+            let (rSupply, tSupply) = self._getCurrentSupply();
+            return rSupply / tSupply;
+        }
+
         fn _getCurrentSupply(self: @ContractState) -> (u256, u256){
             let mut rSupply = self._rTotal.read();
             let mut tSupply = self._tTotal.read();
