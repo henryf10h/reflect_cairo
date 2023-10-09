@@ -5,15 +5,18 @@ mod REFLECT {
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use zeroable::Zeroable;
+    use array::ArrayTrait;
     use reflect_cairo::interfaces::rinterface::IREFLECT;
+
 
     #[storage]
     struct Storage {
         _rOwned: LegacyMap<ContractAddress, u256>,
         _tOwned: LegacyMap<ContractAddress, u256>,
         _allowances: LegacyMap<(ContractAddress, ContractAddress), u256>,
-        // _isExcluded: LegacyMap<ContractAddress, bool>,
-        // _excluded: LegacyArray<ContractAddress>,
+        _isExcluded: LegacyMap<ContractAddress, bool>,
+        excluded_count: felt252,
+        excluded_users: LegacyMap<felt252, ContractAddress>,
         _rTotal: u256,
         _tTotal: u256,
         _tFeeTotal: u256,
@@ -166,11 +169,11 @@ mod REFLECT {
 
     #[external(v0)]
     impl REFLECTImpl of IREFLECT<ContractState> {
-        fn is_excluded(self: @ContractState) -> bool{
-            true
+        fn is_excluded(self: @ContractState, account: ContractAddress) -> bool{
+            self._isExcluded.read(account)
         }
-        fn total_fees(self: @ContractState) -> felt252{
-            123
+        fn total_fees(self: @ContractState) -> u256{
+            self._tFeeTotal.read()
         }
         fn reflect(ref self: ContractState) -> bool{
             true
