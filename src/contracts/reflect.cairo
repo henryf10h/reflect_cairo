@@ -15,8 +15,8 @@ mod REFLECT {
         _tOwned: LegacyMap<ContractAddress, u256>,
         _allowances: LegacyMap<(ContractAddress, ContractAddress), u256>,
         _isExcluded: LegacyMap<ContractAddress, bool>,
-        excluded_count: felt252,
-        excluded_users: LegacyMap<felt252, ContractAddress>,
+        excluded_count: u256,
+        excluded_users: LegacyMap<u256, ContractAddress>,
         _rTotal: u256,
         _tTotal: u256,
         _tFeeTotal: u256,
@@ -192,5 +192,45 @@ mod REFLECT {
         }//return boolean for exclude
     }
 
-    // ... Utility functions ...
+    // ... Internal functions ...
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        fn _getCurrentSupply(self: @ContractState) -> (u256, u256){
+            let mut rSupply = self._rTotal.read();
+            let mut tSupply = self._tTotal.read();
+            let excludedCount = self.excluded_count.read();
+
+            let mut i: u256 = 0;
+            let mut earlyExit: bool = false;
+            loop {
+                if i >= excludedCount {
+                    break;
+                }
+
+                let excludedAddress = self.excluded_users.read(i);
+                let rOwnedValue = self._rOwned.read(excludedAddress);
+                let tOwnedValue = self._tOwned.read(excludedAddress);
+
+                if rOwnedValue > rSupply || tOwnedValue > tSupply {
+                    earlyExit = true;
+                    break;
+                }
+
+                rSupply = rSupply - rOwnedValue;
+                tSupply = tSupply - tOwnedValue;
+
+                i = i + 1;
+            };
+
+            if earlyExit || rSupply < self._rTotal.read() / self._tTotal.read() {
+                return (self._rTotal.read(), self._tTotal.read());
+            }
+
+            return (rSupply, tSupply);
+        }
+    
+    }
+
+    // 
 }
