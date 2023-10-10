@@ -5,7 +5,6 @@ mod REFLECT {
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use zeroable::Zeroable;
-    use array::ArrayTrait;
     use reflect_cairo::interfaces::rinterface::IREFLECT;
 
 
@@ -97,7 +96,10 @@ mod REFLECT {
         /// Returns the amount of tokens owned by `account`.
         /// Todo: we need to define tokenFromReflection.
         fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
-            67
+            if self._isExcluded.read(account) {
+                return self._tOwned.read(account);
+            }
+            return self.token_from_reflection(self._rOwned.read(account));
         }
 
         /// Returns the remaining number of tokens that `spender` is
@@ -115,8 +117,8 @@ mod REFLECT {
         /// Emits a [Transfer](Transfer) event.
         /// todo: define internal _transfer.
         fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
-            // let sender = get_caller_address();
-            // self._transfer(sender, recipient, amount);
+            let sender = get_caller_address();
+            self._transfer(sender, recipient, amount);
             true
         }
 
@@ -130,72 +132,197 @@ mod REFLECT {
             recipient: ContractAddress,
             amount: u256
         ) -> bool {
-            // let caller = get_caller_address();
-            // self._spend_allowance(sender, caller, amount);
-            // self._transfer(sender, recipient, amount);
+            let caller = get_caller_address();
+            self._transfer(sender, recipient, amount);
+            self._approve(sender, caller,self._allowances.read((sender, caller)) - amount );
             true
         }
 
         /// Sets `amount` as the allowance of `spender` over the caller’s tokens.
         /// todo: define internal _approve.
         fn approve(ref self: ContractState, spender: ContractAddress, amount: u256) -> bool {
-            // let caller = get_caller_address();
-            // self._approve(caller, spender, amount);
+            let caller = get_caller_address();
+            self._approve(caller, spender, amount);
             true
         }
     }
 
     /// Increases the allowance granted from the caller to `spender` by `added_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
-    /// Todo: we need to define _approve.
-    // #[external(v0)]
-    // fn increase_allowance(
-    //     ref self: ContractState, spender: ContractAddress, added_value: u256
-    // ) -> bool {
-    //     self._allowance.write((spender, added_value), )
-    // }
+    #[external(v0)]
+    fn increase_allowance(
+        ref self: ContractState, spender: ContractAddress, added_value: u256
+    ) -> bool {
+        let sender = get_caller_address();
+        self._approve(sender, spender, self._allowances.read((sender, spender)) + added_value);
+        true
+    }
 
     /// Decreases the allowance granted from the caller to `spender` by `subtracted_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
-    /// todo: same as above.
-    // #[external(v0)]
-    // fn decrease_allowance(
-    //     ref self: ContractState, spender: ContractAddress, subtracted_value: u256
-    // ) -> bool {
-    //     self._allowance(spender, subtracted_value)
-    // }
+    #[external(v0)]
+    fn decrease_allowance(
+        ref self: ContractState, spender: ContractAddress, subtracted_value: u256
+    ) -> bool {
+        let sender = get_caller_address();
+        self._approve(sender, spender, self._allowances.read((sender, spender)) - subtracted_value);
+        true
+    }
 
     // ... Reflection logic ...
 
     #[external(v0)]
     impl REFLECTImpl of IREFLECT<ContractState> {
+
         fn is_excluded(self: @ContractState, account: ContractAddress) -> bool{
             self._isExcluded.read(account)
         }
+
         fn total_fees(self: @ContractState) -> u256{
             self._tFeeTotal.read()
         }
-        fn reflect(ref self: ContractState) -> bool{
-            true
-        } //return boolean for reflect
-        fn reflection_from_token(self: @ContractState) -> u256{
-            123
+
+        fn reflect(ref self: ContractState, tAmount: u256) -> bool {
+            let sender = get_caller_address();
+            if self._isExcluded.read(sender) {
+                return false;  // Excluded addresses cannot call this function
+            }
+
+            let (rAmount, _, _, _, _) = self._get_values(tAmount);
+            self._rOwned.write(sender, self._rOwned.read(sender) - rAmount);
+            self._rTotal.write(self._rTotal.read() - rAmount);
+            self._tFeeTotal.write(self._tFeeTotal.read() + tAmount);
+            return true;
         }
-        fn token_from_reflection(self: @ContractState, account: ContractAddress) -> u256{
-            1
+
+        fn reflection_from_token(self: @ContractState, tAmount: u256, deductTransferFee: bool) -> u256 {
+            assert (tAmount <= self._tTotal.read(), "Amount must be less than supply");
+            if !deductTransferFee {
+                let (rAmount, _, _, _, _) = self._get_values(tAmount);
+                return rAmount;
+            } else {
+                let (_, rTransferAmount, _, _, _) = self._get_values(tAmount);
+                return rTransferAmount;
+            }
         }
-        fn exclude_account(ref self: ContractState, owner: ContractAddress, spender: ContractAddress) -> bool{
-            true
-        }//return boolean for include
-        fn include_account(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool{
-            true
-        }//return boolean for exclude
+
+        fn token_from_reflection(self: @ContractState, rAmount: u256) -> u256 {
+            assert (rAmount <= self._rTotal.read(), "Amount must be less than total reflections");
+            let currentRate = self._get_rate();
+            return rAmount / currentRate;
+        }
+
+        fn exclude_account(ref self: ContractState, user: ContractAddress) -> bool {
+            if self._isExcluded.read(user) == false {
+                self._isExcluded.write(user, true);
+                let count = self.excluded_count.read();
+                self.excluded_users.write(count, user);
+                self.excluded_count.write(count + 1);
+                return true;
+            }
+            return false;
+        }//todo: make it ownable.
+
+        fn include_account(ref self: ContractState, user: ContractAddress) -> bool {
+            if self._isExcluded.read(user) == true {
+                self._isExcluded.write(user, false);
+                let count = self.excluded_count.read();
+                let mut i: u256 = 0;
+                loop {
+                    if i >= count {
+                        break;
+                    }
+                    if self.excluded_users.read(i) == user {
+                        if i != count - 1 {
+                            let last_user = self.excluded_users.read(count - 1);
+                            self.excluded_users.write(i, last_user);
+                        }
+                        self.excluded_users.write(count - 1, user);
+                        self.excluded_count.write(count - 1);
+                        break;
+                    }
+                    i = i + 1;
+                };
+                return(true);
+            }
+            return(false);
+        }//todo: make it ownable.
+
     }
 
     // ... Internal functions ...
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
+
+        fn _approve(ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256) {
+            // Check for zero addresses
+            assert (owner != Zeroable::zero(), "ERC20: approve from the zero address");
+            assert (spender != Zeroable::zero(), "ERC20: approve to the zero address");
+
+            // Update the allowance
+            self._allowances.write((owner, spender), amount);
+
+            // Emit the Approval event
+            self.emit(Approval { owner: owner, spender: spender, value: amount });
+        }
+
+        
+        fn _transfer(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256) {
+            // Check for zero addresses and amount > 0
+            assert (sender != Zeroable::zero(), "ERC20: transfer from the zero address");
+            assert (recipient != Zeroable::zero(), "ERC20: transfer to the zero address");
+            assert (amount > 0, "Transfer amount must be greater than zero");
+
+            let sender_is_excluded = self._isExcluded.read(sender);
+            let recipient_is_excluded = self._isExcluded.read(recipient);
+
+            if sender_is_excluded || !recipient_is_excluded {
+                self._transfer_from_excluded(sender, recipient, amount);
+            } else if !sender_is_excluded || recipient_is_excluded {
+                self._transfer_to_excluded(sender, recipient, amount);
+            } else if !sender_is_excluded || !recipient_is_excluded {
+                self._transfer_standard(sender, recipient, amount);
+            } else {
+                self._transfer_both_excluded(sender, recipient, amount);
+            }
+        }
+
+        fn _transfer_standard(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, tAmount: u256) {
+            let (rAmount, rTransferAmount, rFee, tTransferAmount, tFee) = self._get_values(tAmount);
+            self._rOwned.write(sender, self._rOwned.read(sender) - rAmount);
+            self._rOwned.write(recipient, self._rOwned.read(recipient) + rTransferAmount);
+            self._reflect_fee(rFee, tFee);
+            self.emit(Transfer { from: sender, to: recipient, value: tTransferAmount });
+        }
+
+        fn _transfer_to_excluded(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, tAmount: u256) {
+            let (rAmount, rTransferAmount, rFee, tTransferAmount, tFee) = self._get_values(tAmount);
+            self._rOwned.write(sender, self._rOwned.read(sender) - rAmount);
+            self._tOwned.write(recipient, self._tOwned.read(recipient) + tTransferAmount);
+            self._rOwned.write(recipient, self._rOwned.read(recipient) + rTransferAmount);
+            self._reflect_fee(rFee, tFee);
+            self.emit(Transfer { from: sender, to: recipient, value: tTransferAmount });
+        }
+
+        fn _transfer_from_excluded(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, tAmount: u256) {
+            let (rAmount, rTransferAmount, rFee, tTransferAmount, tFee) = self._get_values(tAmount);
+            self._tOwned.write(sender, self._tOwned.read(sender) - tAmount);
+            self._rOwned.write(sender, self._rOwned.read(sender) - rAmount);
+            self._rOwned.write(recipient, self._rOwned.read(recipient) + rTransferAmount);
+            self._reflect_fee(rFee, tFee);
+            self.emit(Transfer { from: sender, to: recipient, value: tTransferAmount });
+        }
+
+        fn _transfer_both_excluded(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, tAmount: u256) {
+            let (rAmount, rTransferAmount, rFee, tTransferAmount, tFee) = self._get_values(tAmount);
+            self._tOwned.write(sender, self._tOwned.read(sender) - tAmount);
+            self._rOwned.write(sender, self._rOwned.read(sender) - rAmount);
+            self._tOwned.write(recipient, self._tOwned.read(recipient) + tTransferAmount);
+            self._rOwned.write(recipient, self._rOwned.read(recipient) + rTransferAmount);
+            self._reflect_fee(rFee, tFee);
+            self.emit(Transfer { from: sender, to: recipient, value: tTransferAmount });
+        }
 
         fn _reflect_fee(ref self: ContractState, r_fee: u256, t_fee: u256) {
             self._rTotal.write(self._rTotal.read() - r_fee);
@@ -221,7 +348,6 @@ mod REFLECT {
             let r_transfer_amount = r_amount - r_fee;
             return (r_amount, r_transfer_amount, r_fee);
         }
-
 
         fn _get_rate(self: @ContractState) -> u256 {
             let (rSupply, tSupply) = self._getCurrentSupply();
