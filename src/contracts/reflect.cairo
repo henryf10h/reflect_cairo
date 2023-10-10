@@ -214,6 +214,9 @@ mod REFLECT {
 
         fn exclude_account(ref self: ContractState, user: ContractAddress) -> bool {
             if self._isExcluded.read(user) == false {
+                if self._rOwned.read(user) > 0 {
+                    self._tOwned.write(user, self.token_from_reflection(self._rOwned.read(user)));
+                }
                 self._isExcluded.write(user, true);
                 let count = self.excluded_count.read();
                 self.excluded_users.write(count, user);
@@ -221,12 +224,14 @@ mod REFLECT {
                 return true;
             }
             return false;
-        }//todo: make it ownable.
+        } //todo: make it ownable.
 
         fn include_account(ref self: ContractState, user: ContractAddress) -> bool {
             if self._isExcluded.read(user) == true {
+                self._tOwned.write(user, 0);  // Reset the _tOwned balance for the user
                 self._isExcluded.write(user, false);
                 let count = self.excluded_count.read();
+                let zero_address: ContractAddress = Zeroable::zero();  // Sentinel value for an empty slot
                 let mut i: u256 = 0;
                 loop {
                     if i >= count {
@@ -235,18 +240,19 @@ mod REFLECT {
                     if self.excluded_users.read(i) == user {
                         if i != count - 1 {
                             let last_user = self.excluded_users.read(count - 1);
-                            self.excluded_users.write(i, last_user);
+                            self.excluded_users.write(i, last_user);  // Move the last user to the current position
                         }
-                        self.excluded_users.write(count - 1, user);
-                        self.excluded_count.write(count - 1);
+                        self.excluded_users.write(count - 1, zero_address);  // Set the last address to the zero address
+                        self.excluded_count.write(count - 1);  // Decrement the count
                         break;
                     }
                     i = i + 1;
                 };
-                return(true);
+                return true;
             }
-            return(false);
-        }//todo: make it ownable.
+            return false;
+        } //todo: make it ownable.
+
 
     }
 
