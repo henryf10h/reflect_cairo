@@ -150,24 +150,24 @@ mod REFLECT {
     /// Increases the allowance granted from the caller to `spender` by `added_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
     #[external(v0)]
-    fn increase_allowance(
-        ref self: ContractState, spender: ContractAddress, added_value: u256
-    ) -> bool {
-        let sender = get_caller_address();
-        self._approve(sender, spender, self._allowances.read((sender, spender)) + added_value);
-        true
-    }
+        fn increase_allowance(
+            ref self: ContractState, spender: ContractAddress, added_value: u256
+        ) -> bool {
+            let sender = get_caller_address();
+            self._approve(sender, spender, self._allowances.read((sender, spender)) + added_value);
+            true
+        }
 
     /// Decreases the allowance granted from the caller to `spender` by `subtracted_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
     #[external(v0)]
-    fn decrease_allowance(
-        ref self: ContractState, spender: ContractAddress, subtracted_value: u256
-    ) -> bool {
-        let sender = get_caller_address();
-        self._approve(sender, spender, self._allowances.read((sender, spender)) - subtracted_value);
-        true
-    }
+        fn decrease_allowance(
+            ref self: ContractState, spender: ContractAddress, subtracted_value: u256
+        ) -> bool {
+            let sender = get_caller_address();
+            self._approve(sender, spender, self._allowances.read((sender, spender)) - subtracted_value);
+            true
+        }
 
     // ... Reflection logic ...
 
