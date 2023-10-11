@@ -27,7 +27,7 @@ scarb build
 ```
 ### Test
 ```bash 
-scarb tests
+Help us writing tests !
 ```
 (we highly need help writing tests)
 
