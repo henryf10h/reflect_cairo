@@ -356,11 +356,11 @@ mod REFLECT {
         }
 
         fn _get_rate(self: @ContractState) -> u256 {
-            let (rSupply, tSupply) = self._getCurrentSupply();
+            let (rSupply, tSupply) = self._get_current_supply();
             return rSupply / tSupply;
         }
 
-        fn _getCurrentSupply(self: @ContractState) -> (u256, u256){
+        fn _get_current_supply(self: @ContractState) -> (u256, u256){
             let mut rSupply = self._rTotal.read();
             let mut tSupply = self._tTotal.read();
             let excludedCount = self.excluded_count.read();

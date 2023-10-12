@@ -4,3 +4,7 @@ mod contracts{
 mod interfaces{
     mod rinterface;
 }
+#[cfg(test)]
+mod tests{
+    mod test_reflect;
+}
