@@ -27,12 +27,12 @@ mod REFLECT {
     // ... Events and other necessary structs ...
 
     #[constructor]
-    fn constructor(ref self: ContractState) {
-        self._name.write('Reflect.primitives');
-        self._symbol.write('RPI');
-        self._decimals.write(9);
+    fn constructor(ref self: ContractState, _name: felt252, _symbol: felt252, _decimals: u8, _supply: u256) {
+        self._name.write(_name);
+        self._symbol.write(_symbol);
+        self._decimals.write(_decimals);
         let MAX: u256 = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-        self._tTotal.write(10000000000000000);
+        self._tTotal.write(_supply);
         self._rTotal.write(MAX - (MAX % self._tTotal.read()));
         let creator = get_caller_address();
         self._rOwned.write(creator, self._rTotal.read());
