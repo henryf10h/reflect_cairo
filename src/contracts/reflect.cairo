@@ -125,7 +125,7 @@ mod REFLECT {
         /// Moves `amount` tokens from `from` to `to` using the allowance mechanism.
         /// `amount` is then deducted from the caller's allowance.
         /// Emits a [Transfer](Transfer) event.
-        /// todo: define internal _spend_allowance.
+        /// todo: define internal _spend_allowance. WRONG! it is not needed. 
         fn transfer_from(
             ref self: ContractState,
             sender: ContractAddress,
