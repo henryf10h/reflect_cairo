@@ -7,4 +7,5 @@ mod interfaces{
 #[cfg(test)]
 mod tests{
     mod reflect;
+    mod utils;
 }
