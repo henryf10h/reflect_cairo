@@ -49,8 +49,8 @@ starkli deploy --watch 0x0128b6bf01a2800b1573a57f9b919839c03fb82e8796527cf8910e0
 
 The following tools are utilized in this project:
 
-- **Starkli**: A CLI tool for interacting with StarkNet.
-- **Scarb**: A testing framework for StarkNet contracts. [Learn more](https://docs.swmansion.com/scarb/docs.html/)
+- **Starkli**: A CLI tool for interacting with StarkNet.[Starkli](https://book.starkli.rs/)
+- **Scarb**: A testing framework for StarkNet contracts. [Scarb](https://docs.swmansion.com/scarb/docs.html/)
 - **Cairo 1.0 VSCode Extension**: An extension for Visual Studio Code to support Cairo language. [Get it here](https://marketplace.visualstudio.com/items?itemName=starkware.cairo1)
 
 ## Resources
