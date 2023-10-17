@@ -31,6 +31,53 @@ Help us writing tests !
 ```
 (we highly need help writing tests)
 
+## Deployment
+
+To deploy the `reflect.cairo` contract, follow the steps below:
+
+### 1. Declaration
+
+```bash
+starkli declare --watch target/dev/reflect_cairo_REFLECT.sierra.json --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json
+```
+### 2. Deployment
+
+```bash
+starkli deploy --watch 0x0128b6bf01a2800b1573a57f9b919839c03fb82e8796527cf8910e07fb168d49 str:name str:symbol 9 u256:200000 --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json 
+```
+## Tooling
+
+The following tools are utilized in this project:
+
+- **Starkli**: A CLI tool for interacting with StarkNet.
+- **Scarb**: A testing framework for StarkNet contracts. [Learn more](https://docs.swmansion.com/scarb/docs.html/)
+- **Cairo 1.0 VSCode Extension**: An extension for Visual Studio Code to support Cairo language. [Get it here](https://marketplace.visualstudio.com/items?itemName=starkware.cairo1)
+
+## Resources
+
+Here are some resources to get more familiar with the underlying technologies:
+
+- [Technical Paper on Reflect Contracts by Anonymous Builder](https://forum.openzeppelin.com/t/a-technical-whitepaper-for-reflect-contracts/14297)
+- [Cairo Book](https://book.cairo-lang.org/)
+- [Cairo by Example](https://cairo-by-example.com/)
+- [StarkNet Book](https://book.starknet.io/index.html/)
+
+## Version
+
+The versions of the tools and libraries used are as follows:
+
+```bash
+starkli --version
+# Output: 0.1.15 (995c95a)
+scarb --version
+# Output: 0.7.0 (58cc88efb 2023-08-23)
+cairo --version
+# Output: 2.2.0 (https://crates.io/crates/cairo-lang-compiler/2.2.0)
+sierra --version
+# Output: 1.3.0
+```
+
+
 ### Contribution ✨
 We welcome contributions from the community! Whether you're a seasoned developer or just getting started, there's room for everyone to make an impact. If you have ideas, optimizations, you just want to write tests or anything aligned with reflective standards, please feel free to raise an issue or submit a pull request.
 
