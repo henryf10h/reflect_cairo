@@ -1,11 +1,11 @@
-mod contracts{
+mod contracts {
     mod reflect;
 }
-mod interfaces{
+mod interfaces {
     mod rinterface;
 }
 #[cfg(test)]
-mod tests{
+mod tests {
     mod reflect;
     mod utils;
 }

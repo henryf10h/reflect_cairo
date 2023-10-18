@@ -27,16 +27,18 @@ mod REFLECT {
     // ... Events and other necessary structs ...
 
     #[constructor]
-    fn constructor(ref self: ContractState, _name: felt252, _symbol: felt252, _decimals: u8, _supply: u256) {
+    fn constructor(
+        ref self: ContractState, _name: felt252, _symbol: felt252, _decimals: u8, _supply: u256, _creator:ContractAddress
+    ) {
         self._name.write(_name);
         self._symbol.write(_symbol);
         self._decimals.write(_decimals);
-        let MAX: u256 = 7237005577332262213973186563042994240829374041602535252466099000494570602495; //2**252 - 1
+        let MAX: u256 =
+            7237005577332262213973186563042994240829374041602535252466099000494570602495; //2**252 - 1
         self._tTotal.write(_supply);
         self._rTotal.write(MAX - (MAX % self._tTotal.read()));
-        let creator = get_caller_address();
-        self._rOwned.write(creator, self._rTotal.read());
-        self.emit(Transfer { from: Zeroable::zero(), to: creator, value: self._rTotal.read() });
+        self._rOwned.write(_creator, self._rTotal.read());
+        self.emit(Transfer { from: Zeroable::zero(), to: _creator, value: self._rTotal.read() });
     }
 
     #[event]
@@ -134,7 +136,7 @@ mod REFLECT {
         ) -> bool {
             let caller = get_caller_address();
             self._transfer(sender, recipient, amount);
-            self._approve(sender, caller,self._allowances.read((sender, caller)) - amount );
+            self._approve(sender, caller, self._allowances.read((sender, caller)) - amount);
             true
         }
 
@@ -150,35 +152,34 @@ mod REFLECT {
     /// Increases the allowance granted from the caller to `spender` by `added_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
     #[external(v0)]
-        fn increase_allowance(
-            ref self: ContractState, spender: ContractAddress, added_value: u256
-        ) -> bool {
-            let sender = get_caller_address();
-            self._approve(sender, spender, self._allowances.read((sender, spender)) + added_value);
-            true
-        }
+    fn increase_allowance(
+        ref self: ContractState, spender: ContractAddress, added_value: u256
+    ) -> bool {
+        let sender = get_caller_address();
+        self._approve(sender, spender, self._allowances.read((sender, spender)) + added_value);
+        true
+    }
 
     /// Decreases the allowance granted from the caller to `spender` by `subtracted_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
     #[external(v0)]
-        fn decrease_allowance(
-            ref self: ContractState, spender: ContractAddress, subtracted_value: u256
-        ) -> bool {
-            let sender = get_caller_address();
-            self._approve(sender, spender, self._allowances.read((sender, spender)) - subtracted_value);
-            true
-        }
+    fn decrease_allowance(
+        ref self: ContractState, spender: ContractAddress, subtracted_value: u256
+    ) -> bool {
+        let sender = get_caller_address();
+        self._approve(sender, spender, self._allowances.read((sender, spender)) - subtracted_value);
+        true
+    }
 
     // ... Reflection logic ...
 
     #[external(v0)]
     impl REFLECTImpl of IREFLECT<ContractState> {
-
         // fn is_excluded(self: @ContractState, account: ContractAddress) -> bool{
         //     self._isExcluded.read(account)
         // }
 
-        fn total_fees(self: @ContractState) -> u256{
+        fn total_fees(self: @ContractState) -> u256 {
             self._tFeeTotal.read()
         }
 
@@ -207,52 +208,50 @@ mod REFLECT {
         // }
 
         fn token_from_reflection(self: @ContractState, rAmount: u256) -> u256 {
-            assert (rAmount <= self._rTotal.read(), 'Less than total reflections');
+            assert(rAmount <= self._rTotal.read(), 'Less than total reflections');
             let currentRate = self._get_rate();
             return rAmount / currentRate;
         }
+    // fn exclude_account(ref self: ContractState, user: ContractAddress) -> bool {
+    //     if self._isExcluded.read(user) == false {
+    //         if self._rOwned.read(user) > 0 {
+    //             self._tOwned.write(user, self.token_from_reflection(self._rOwned.read(user)));
+    //         }
+    //         self._isExcluded.write(user, true);
+    //         let count = self.excluded_count.read();
+    //         self.excluded_users.write(count, user);
+    //         self.excluded_count.write(count + 1);
+    //         return true;
+    //     }
+    //     return false;
+    // } //todo: make it ownable.
 
-        // fn exclude_account(ref self: ContractState, user: ContractAddress) -> bool {
-        //     if self._isExcluded.read(user) == false {
-        //         if self._rOwned.read(user) > 0 {
-        //             self._tOwned.write(user, self.token_from_reflection(self._rOwned.read(user)));
-        //         }
-        //         self._isExcluded.write(user, true);
-        //         let count = self.excluded_count.read();
-        //         self.excluded_users.write(count, user);
-        //         self.excluded_count.write(count + 1);
-        //         return true;
-        //     }
-        //     return false;
-        // } //todo: make it ownable.
-
-        // fn include_account(ref self: ContractState, user: ContractAddress) -> bool {
-        //     if self._isExcluded.read(user) == true {
-        //         self._tOwned.write(user, 0);  // Reset the _tOwned balance for the user
-        //         self._isExcluded.write(user, false);
-        //         let count = self.excluded_count.read();
-        //         let zero_address: ContractAddress = Zeroable::zero();  // Sentinel value for an empty slot
-        //         let mut i: u256 = 0;
-        //         loop {
-        //             if i >= count {
-        //                 break;
-        //             }
-        //             if self.excluded_users.read(i) == user {
-        //                 if i != count - 1 {
-        //                     let last_user = self.excluded_users.read(count - 1);
-        //                     self.excluded_users.write(i, last_user);  // Move the last user to the current position
-        //                 }
-        //                 self.excluded_users.write(count - 1, zero_address);  // Set the last address to the zero address
-        //                 self.excluded_count.write(count - 1);  // Decrement the count
-        //                 break;
-        //             }
-        //             i = i + 1;
-        //         };
-        //         return true;
-        //     }
-        //     return false;
-        // } //todo: make it ownable.
-
+    // fn include_account(ref self: ContractState, user: ContractAddress) -> bool {
+    //     if self._isExcluded.read(user) == true {
+    //         self._tOwned.write(user, 0);  // Reset the _tOwned balance for the user
+    //         self._isExcluded.write(user, false);
+    //         let count = self.excluded_count.read();
+    //         let zero_address: ContractAddress = Zeroable::zero();  // Sentinel value for an empty slot
+    //         let mut i: u256 = 0;
+    //         loop {
+    //             if i >= count {
+    //                 break;
+    //             }
+    //             if self.excluded_users.read(i) == user {
+    //                 if i != count - 1 {
+    //                     let last_user = self.excluded_users.read(count - 1);
+    //                     self.excluded_users.write(i, last_user);  // Move the last user to the current position
+    //                 }
+    //                 self.excluded_users.write(count - 1, zero_address);  // Set the last address to the zero address
+    //                 self.excluded_count.write(count - 1);  // Decrement the count
+    //                 break;
+    //             }
+    //             i = i + 1;
+    //         };
+    //         return true;
+    //     }
+    //     return false;
+    // } //todo: make it ownable.
 
     }
 
@@ -260,11 +259,12 @@ mod REFLECT {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-
-        fn _approve(ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256) {
+        fn _approve(
+            ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
+        ) {
             // Check for zero addresses
-            assert (owner != Zeroable::zero(), 'Approve from the zero address');
-            assert (spender != Zeroable::zero(), 'Approve to the zero address');
+            assert(owner != Zeroable::zero(), 'Approve from the zero address');
+            assert(spender != Zeroable::zero(), 'Approve to the zero address');
 
             // Update the allowance
             self._allowances.write((owner, spender), amount);
@@ -273,12 +273,17 @@ mod REFLECT {
             self.emit(Approval { owner: owner, spender: spender, value: amount });
         }
 
-        
-        fn _transfer(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256) {
+
+        fn _transfer(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256
+        ) {
             // Check for zero addresses and amount > 0
-            assert (sender != Zeroable::zero(), 'Transfer from the zero address');
-            assert (recipient != Zeroable::zero(), 'Transfer to the zero address');
-            assert (amount > 0, 'Must be greater than zero');
+            assert(sender != Zeroable::zero(), 'Transfer from the zero address');
+            assert(recipient != Zeroable::zero(), 'Transfer to the zero address');
+            assert(amount > 0, 'Must be greater than zero');
 
             // let sender_is_excluded = self._isExcluded.read(sender);
             // let recipient_is_excluded = self._isExcluded.read(recipient);
@@ -295,7 +300,12 @@ mod REFLECT {
             self._transfer_standard(sender, recipient, amount);
         }
 
-        fn _transfer_standard(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, tAmount: u256) {
+        fn _transfer_standard(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            tAmount: u256
+        ) {
             let (rAmount, rTransferAmount, rFee, tTransferAmount, tFee) = self._get_values(tAmount);
             self._rOwned.write(sender, self._rOwned.read(sender) - rAmount);
             self._rOwned.write(recipient, self._rOwned.read(recipient) + rTransferAmount);
@@ -339,7 +349,8 @@ mod REFLECT {
         fn _get_values(self: @ContractState, t_amount: u256) -> (u256, u256, u256, u256, u256) {
             let (t_transfer_amount, t_fee) = self._get_t_values(t_amount);
             let current_rate = self._get_rate();
-            let (r_amount, r_transfer_amount, r_fee) = self._get_r_values(t_amount, t_fee, current_rate);
+            let (r_amount, r_transfer_amount, r_fee) = self
+                ._get_r_values(t_amount, t_fee, current_rate);
             return (r_amount, r_transfer_amount, r_fee, t_transfer_amount, t_fee);
         }
 
@@ -349,7 +360,9 @@ mod REFLECT {
             return (t_transfer_amount, t_fee);
         }
 
-        fn _get_r_values(self: @ContractState, t_amount: u256, t_fee: u256, current_rate: u256) -> (u256, u256, u256) {
+        fn _get_r_values(
+            self: @ContractState, t_amount: u256, t_fee: u256, current_rate: u256
+        ) -> (u256, u256, u256) {
             let r_amount = t_amount * current_rate;
             let r_fee = t_fee * current_rate;
             let r_transfer_amount = r_amount - r_fee;
@@ -361,7 +374,7 @@ mod REFLECT {
             return rSupply / tSupply;
         }
 
-        fn _get_current_supply(self: @ContractState) -> (u256, u256){
+        fn _get_current_supply(self: @ContractState) -> (u256, u256) {
             let mut rSupply = self._rTotal.read();
             let mut tSupply = self._tTotal.read();
             // let excludedCount = self.excluded_count.read();
@@ -394,8 +407,6 @@ mod REFLECT {
 
             return (rSupply, tSupply);
         }
-    
     }
-
-    // 
+// 
 }
