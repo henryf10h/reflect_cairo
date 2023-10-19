@@ -22,7 +22,7 @@ fn STATE() -> REFLECT::ContractState {
 
 fn setup() -> REFLECT::ContractState {
     let mut state = STATE();
-    REFLECT::constructor(ref state, NAME, SYMBOL, DECIMALS, SUPPLY);
+    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, OWNER());
     state
 }
 
@@ -30,13 +30,13 @@ fn setup() -> REFLECT::ContractState {
 #[available_gas(20000000)]
 fn test_constructor() {
     let mut state = STATE();
-    REFLECT::constructor(ref state, NAME, SYMBOL, DECIMALS, SUPPLY);
+    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY,OWNER());
 
     // assert_only_event_transfer(ZERO(), OWNER(), SUPPLY);
-    let balance = ERC20Impl::balance_of(@state, OWNER());
-    let supp = SUPPLY;
-    balance.print();
-    supp.print();
+    // let balance = ERC20Impl::balance_of(@state, OWNER());
+    // let supp = SUPPLY;
+    // balance.print();
+    // supp.print();
 
     assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY, 'Should eq initial_supply 1');
     assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Should eq initial_supply 2');
@@ -48,122 +48,113 @@ fn test_constructor() {
 // Getters
 //
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test_total_supply() {
-//     let mut state = STATE();
-//     REFLECT::constructor(ref state, NAME, SYMBOL, DECIMALS, SUPPLY);
-//     assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Should eq SUPPLY');
-// }
+#[test]
+#[available_gas(2000000)]
+fn test_total_supply() {
+    let mut state = STATE();
+    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, OWNER());
+    assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Should eq SUPPLY');
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test_balance_of() {
-//     let mut state = STATE();
-//     REFLECT::constructor(ref state, NAME, SYMBOL, DECIMALS, SUPPLY);
-//     assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY, 'Should eq SUPPLY');
-// }
+#[test]
+#[available_gas(2000000)]
+fn test_balance_of() {
+    let mut state = STATE();
+    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, OWNER());
+    assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY, 'Should eq SUPPLY');
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test_allowance() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     ERC20Impl::approve(ref state, SPENDER(), VALUE);
+#[test]
+#[available_gas(2000000)]
+fn test_allowance() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    ERC20Impl::approve(ref state, SPENDER(), VALUE);
 
-//     assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE, 'Should eq VALUE');
-// }
+    assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE, 'Should eq VALUE');
+}
 
 // //
 // // approve & _approve
 // //
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test_approve() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     assert(ERC20Impl::approve(ref state, SPENDER(), VALUE), 'Should return true');
+#[test]
+#[available_gas(2000000)]
+fn test_approve() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    assert(ERC20Impl::approve(ref state, SPENDER(), VALUE), 'Should return true');
 
-//     assert_only_event_approval(OWNER(), SPENDER(), VALUE);
-//     assert(
-//         ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE, 'Spender not approved correctly'
-//     );
-// }
+    // assert_only_event_approval(OWNER(), SPENDER(), VALUE);
+    assert(
+        ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE, 'Spender not approved correctly'
+    );
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('ERC20: approve from 0',))]
-// fn test_approve_from_zero() {
-//     let mut state = setup();
-//     ERC20Impl::approve(ref state, SPENDER(), VALUE);
-// }
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('Approve from the zero addr',))]
+fn test_approve_from_zero() {
+    let mut state = setup();
+    // testing::set_caller_address(ZERO());
+    ERC20Impl::approve(ref state, SPENDER(), VALUE);
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('ERC20: approve to 0',))]
-// fn test_approve_to_zero() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     ERC20Impl::approve(ref state, Zeroable::zero(), VALUE);
-// }
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('Approve to the zero addr',))]
+fn test_approve_to_zero() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    ERC20Impl::approve(ref state, Zeroable::zero(), VALUE);
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test__approve() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     InternalImpl::_approve(ref state, OWNER(), SPENDER(), VALUE);
+#[test]
+#[available_gas(2000000)]
+fn test__approve() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    InternalImpl::_approve(ref state, OWNER(), SPENDER(), VALUE);
 
-//     assert_only_event_approval(OWNER(), SPENDER(), VALUE);
-//     assert(
-//         ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE, 'Spender not approved correctly'
-//     );
-// }
+    // assert_only_event_approval(OWNER(), SPENDER(), VALUE);
+    assert(
+        ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE, 'Spender not approved correctly'
+    );
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('ERC20: approve from 0',))]
-// fn test__approve_from_zero() {
-//     let mut state = setup();
-//     InternalImpl::_approve(ref state, Zeroable::zero(), SPENDER(), VALUE);
-// }
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('Approve from the zero addr',))]
+fn test__approve_from_zero() {
+    let mut state = setup();
+    InternalImpl::_approve(ref state, Zeroable::zero(), SPENDER(), VALUE);
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('ERC20: approve to 0',))]
-// fn test__approve_to_zero() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     InternalImpl::_approve(ref state, OWNER(), Zeroable::zero(), VALUE);
-// }
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('Approve to the zero addr',))]
+fn test__approve_to_zero() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    InternalImpl::_approve(ref state, OWNER(), Zeroable::zero(), VALUE);
+}
 
 // //
 // // transfer & _transfer
 // //
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test_transfer() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     assert(ERC20Impl::transfer(ref state, RECIPIENT(), VALUE), 'Should return true');
+#[test]
+#[available_gas(2000000)]
+fn test_transfer() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    assert(ERC20Impl::transfer(ref state, RECIPIENT(), VALUE), 'Should return true');
 
-//     assert_only_event_transfer(OWNER(), RECIPIENT(), VALUE);
-//     assert(ERC20Impl::balance_of(@state, RECIPIENT()) == VALUE, 'Balance should eq VALUE');
-//     assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY - VALUE, 'Should eq supply - VALUE');
-//     assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Total supply should not change');
-// }
+    // assert_only_event_transfer(OWNER(), RECIPIENT(), VALUE);
+    assert(ERC20Impl::balance_of(@state, RECIPIENT()) == VALUE, 'Balance should eq VALUE');
+    assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY + VALUE, 'Should eq supply - VALUE');
+    assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Total supply should not change');
+}
 
 // #[test]
 // #[ignore]

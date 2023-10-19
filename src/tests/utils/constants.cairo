@@ -5,9 +5,9 @@ use starknet::contract_address_const;
 
 const NAME: felt252 = 'NAME';
 const SYMBOL: felt252 = 'SYMBOL';
-const DECIMALS: u8 = 18_u8;
-const SUPPLY: u256 = 2000;
-const VALUE: u256 = 300;
+const DECIMALS: u8 = 9_u8;
+const SUPPLY: u256 = 1000000000000000000;
+const VALUE: u256 = 1000000000000;
 const ROLE: felt252 = 'ROLE';
 const OTHER_ROLE: felt252 = 'OTHER_ROLE';
 const URI: felt252 = 'URI';

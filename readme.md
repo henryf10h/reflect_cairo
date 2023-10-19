@@ -43,7 +43,7 @@ starkli declare --watch target/dev/reflect_cairo_REFLECT.sierra.json --account ~
 ### 2. Deployment
 
 ```bash
-starkli deploy --watch 0x0128b6bf01a2800b1573a57f9b919839c03fb82e8796527cf8910e07fb168d49 str:name str:symbol 9 u256:200000 --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json 
+starkli deploy --watch 0x06ddeba5578f6f28b0688bfb0b6891a3d50ee8a0a7f8b98d26fd874e710a4674 str:name str:symbol u256:10000000000000000 0x52e6ad8187767ef41f2f3bc225d33d31b37dd9bbee7b628f4b6b16b90d293ec --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json 
 ```
 ## Tooling
 

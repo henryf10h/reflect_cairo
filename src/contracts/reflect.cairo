@@ -28,11 +28,11 @@ mod REFLECT {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, _name: felt252, _symbol: felt252, _decimals: u8, _supply: u256, _creator:ContractAddress
+        ref self: ContractState, _name: felt252, _symbol: felt252, _supply: u256, _creator:ContractAddress
     ) {
         self._name.write(_name);
         self._symbol.write(_symbol);
-        self._decimals.write(_decimals);
+        self._decimals.write(9);
         let MAX: u256 =
             7237005577332262213973186563042994240829374041602535252466099000494570602495; //2**252 - 1
         self._tTotal.write(_supply);
@@ -263,8 +263,8 @@ mod REFLECT {
             ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
         ) {
             // Check for zero addresses
-            assert(owner != Zeroable::zero(), 'Approve from the zero address');
-            assert(spender != Zeroable::zero(), 'Approve to the zero address');
+            assert(!owner.is_zero(), 'Approve from the zero addr');
+            assert(!spender.is_zero(), 'Approve to the zero addr');
 
             // Update the allowance
             self._allowances.write((owner, spender), amount);
@@ -281,8 +281,8 @@ mod REFLECT {
             amount: u256
         ) {
             // Check for zero addresses and amount > 0
-            assert(sender != Zeroable::zero(), 'Transfer from the zero address');
-            assert(recipient != Zeroable::zero(), 'Transfer to the zero address');
+            assert(!sender.is_zero(), 'Transfer from the zero address');
+            assert(!recipient.is_zero(), 'Transfer to the zero address');
             assert(amount > 0, 'Must be greater than zero');
 
             // let sender_is_excluded = self._isExcluded.read(sender);
