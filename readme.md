@@ -11,25 +11,36 @@ Blockchain and smart contracts present a vast, ever-evolving domain. It's pivota
 ## Goals 🎯
 
 - **Translate and Adapt**: Our primary goal (by now) is to translate the well-known `reflect.sol` from Solidity to Cairo, ensuring that the unique properties of reflective assets are preserved and optimized for the Cairo environment.
+- **Wrapper**: Coming soon...
 
-## Installation 🔧
+## Project Setup 🛠️
 
-This project utilizes the scarb package manager for building and testing the contract. If you don't have scarb installed, you can find the installation instructions on the [official documentation](https://docs.swmansion.com/scarb/download.html).
+Once you have installed scarb, it's time to set up the project on your local machine. Follow the steps below:
 
-### Steps:
-Install scarb following the [provided guidelines](https://docs.swmansion.com/scarb/download.html).
-
-## Usage 🔧
-
-### Build
+1. Create a new folder for the project.
+```bash
+mkdir your_project_name
+```
+2. Navigate to the new folder in your terminal.
+```bash
+cd your_project_name
+```
+3. Clone the repository into your new project folder.
+```bash
+git clone https://github.com/henryf10h/reflect_cairo.git
+```
+4. Change directory to the cloned repository.
+```bash
+cd reflect_cairo
+```
+5. Now you are ready to build the project using scarb.
 ```bash
 scarb build
 ```
-### Test
-```bash 
-Help us writing tests !
+6. You can also run the provided tests using scarb.
+```bash
+scarb test
 ```
-(we highly need help writing tests)
 
 ## Deployment
 
@@ -45,6 +56,7 @@ starkli declare --watch target/dev/reflect_cairo_REFLECT.sierra.json --account ~
 ```bash
 starkli deploy --watch 0x06ddeba5578f6f28b0688bfb0b6891a3d50ee8a0a7f8b98d26fd874e710a4674 str:name str:symbol u256:10000000000000000 0x52e6ad8187767ef41f2f3bc225d33d31b37dd9bbee7b628f4b6b16b90d293ec --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json 
 ```
+emoji of wuju!
 ## Tooling
 
 The following tools are utilized in this project:
