@@ -1,12 +1,9 @@
 # Reflective Standards in Cairo 🐫
-![Description of Image](public/alter.png)
+
 ## Overview 🌐
 
 This repository is dedicated to the exploration and development of reflective standards and assets using the Cairo language. Reflective assets have the unique property of automatically redistributing a portion of transactions to existing holders, creating a self-rewarding mechanism.
-
-## Motivation 🚀
-
-Blockchain and smart contracts present a vast, ever-evolving domain. It's pivotal to adapt existing standards and foster innovations like reflective assets, a novelty in decentralized finance (DeFi).
+![Description of Image](public/alter.png)
 
 ## Goals 🎯
 
