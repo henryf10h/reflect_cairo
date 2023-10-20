@@ -49,9 +49,16 @@ scarb build
 scarb test
 ```
 
-## Deployment
+Deploying the `reflect.cairo` contract involves a two-step process: declaration and deployment. Below are the steps for both processes along with an explanation of the four arguments required by the contract's constructor.
 
-To deploy the `reflect.cairo` contract, follow the steps below:
+### Arguments Explanation
+
+The `reflect.cairo` contract constructor requires four arguments:
+
+1. **name**: The name of the token.
+2. **symbol**: The symbol of the token.
+3. **supply**: The initial supply of the token. It is suggested to use a supply number bigger than 10^12 for better precision.
+4. **owner**: The StarkNet address of the initial owner of the tokens.
 
 ### 1. Declaration
 
@@ -60,10 +67,15 @@ starkli declare --watch target/dev/reflect_cairo_REFLECT.sierra.json --account ~
 ```
 ### 2. Deployment
 
+Deploy the contract with the desired name, symbol, supply, and owner arguments using the following command:
+
 ```bash
-starkli deploy --watch 0x06ddeba5578f6f28b0688bfb0b6891a3d50ee8a0a7f8b98d26fd874e710a4674 str:name str:symbol u256:10000000000000000 0x52e6ad8187767ef41f2f3bc225d33d31b37dd9bbee7b628f4b6b16b90d293ec --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json 
+starkli deploy --watch 0x06ddeba5578f6f28b0688bfb0b6891a3d50ee8a0a7f8b98d26fd874e710a4674 str:name str:symbol u256:10000000000000000 0x67e6ad8187767ef41f2f3bc225d33d31b37dd9bbee7b628f4b6b16b90d26666 --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json 
 ```
-emoji of wuju!
+Make sure to replace str:name, str:symbol, u256:10000000000000000, and 0x67e6ad8187767ef41f2f3bc225d33d31b37dd9bbee7b628f4b6b16b90d26666 with your desired token name, symbol, supply, and owner address respectively.
+
+🚀 Wujuuuu! Your contract has been deployed successfully! Feel the excitement as you now have your deflationary token live on StarkNet! 🎉
+
 ## Tooling
 
 The following tools are utilized in this project:
