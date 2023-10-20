@@ -13,9 +13,16 @@ Blockchain and smart contracts present a vast, ever-evolving domain. It's pivota
 - **Translate and Adapt**: Our primary goal (by now) is to translate the well-known `reflect.sol` from Solidity to Cairo, ensuring that the unique properties of reflective assets are preserved and optimized for the Cairo environment.
 - **Wrapper**: Coming soon...
 
+## Installation 🔧
+
+Before you can set up the project, you'll need to have `scarb` and `starkli` installed on your machine. If you don't have them installed, you can find the installation instructions on the official documentation:
+
+- [Scarb Installation](https://docs.swmansion.com/scarb/download.html)
+- [Starkli Installation](https://github.com/starkware-libs/starkli)
+
 ## Project Setup 🛠️
 
-Once you have installed scarb, it's time to set up the project on your local machine. Follow the steps below:
+Once you have installed `scarb` and `starkli`, it's time to set up the project on your local machine. Follow the steps below:
 
 1. Create a new folder for the project.
 ```bash
