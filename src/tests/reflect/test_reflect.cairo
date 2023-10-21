@@ -30,7 +30,7 @@ fn setup() -> REFLECT::ContractState {
 #[available_gas(20000000)]
 fn test_constructor() {
     let mut state = STATE();
-    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY,OWNER());
+    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, OWNER());
 
     // assert_only_event_transfer(ZERO(), OWNER(), SUPPLY);
     // let balance = ERC20Impl::balance_of(@state, OWNER());
@@ -140,21 +140,99 @@ fn test__approve_to_zero() {
 }
 
 // //
-// // transfer & _transfer
+// // _get_current_supply
 // //
 
 #[test]
 #[available_gas(2000000)]
-fn test_transfer() {
-    let mut state = setup();
-    testing::set_caller_address(OWNER());
-    assert(ERC20Impl::transfer(ref state, RECIPIENT(), VALUE), 'Should return true');
-
-    // assert_only_event_transfer(OWNER(), RECIPIENT(), VALUE);
-    assert(ERC20Impl::balance_of(@state, RECIPIENT()) == VALUE, 'Balance should eq VALUE');
-    assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY + VALUE, 'Should eq supply - VALUE');
-    assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Total supply should not change');
+fn test_get_current_supply() {
+    let mut state = setup();  // Assuming setup initializes your contract state
+    
+    let (r_supply, t_supply) = InternalImpl::_get_current_supply(@state);
+    
+    let expected_r_supply: u256 = 115792089237316195423570985008687907853269984665640564039457000000000000000000;  // rTotal
+    
+    assert(r_supply == expected_r_supply, 'rSupply mismatch');
+    assert(t_supply == SUPPLY, 'tSupply mismatch');
 }
+
+// //
+// // _get_rate
+// //
+
+#[test]
+#[available_gas(2000000)]
+fn test_get_rate() {
+    let mut state = setup();  // Assuming setup initializes your contract state
+    
+    let rate = InternalImpl::_get_rate(@state);
+    
+    let expected_rate: u256 = 115792089237316195423570985008687907853269984665640564039457;  // Replace with expected value
+    
+    assert(rate == expected_rate, 'Rate mismatch');
+}
+
+// //
+// // get_r_values & get_t_values
+// //
+
+#[test]
+#[available_gas(2000000)]
+fn test_get_t_values() {
+    let mut state = setup();  // Assuming setup initializes your contract state
+
+    let t_amount = 1000000;
+
+    let (t_transfer_amount, t_fee) = InternalImpl::_get_t_values(@state, t_amount);
+
+    let fee = t_amount/100;
+
+    let expected_t_transfer_amount = t_amount - fee;  // Corrected this line
+    t_transfer_amount.print();
+    expected_t_transfer_amount.print();
+    assert(t_fee == fee, 'Incorrect t_fee calculation');
+    assert(t_transfer_amount == expected_t_transfer_amount, 'Incorrect t_transfer_amount calculation');
+}
+
+
+// #[test]
+// #[available_gas(2000000)]
+// fn test_get_r_values() {
+//     let mut state = setup();  // Assuming setup initializes your contract state
+
+//     let t_amount: u256 = 1000000;
+//     let t_fee: u256 = t_amount / 100;
+//     let current_rate: u256 = InternalImpl::_get_rate(@state);  // Replace with your rate
+
+//     let (r_amount, r_transfer_amount, r_fee) = InternalImpl::_get_r_values(@state, t_amount, t_fee, current_rate);
+
+//     let expected_r_amount = t_amount * current_rate;
+//     let expected_r_fee = t_fee * current_rate;
+//     let expected_r_transfer_amount = r_amount - r_fee;
+
+//     assert(r_amount == expected_r_amount, 'Incorrect r_amount calculation');
+//     assert(r_fee == expected_r_fee, 'Incorrect r_fee calculation');
+//     assert(r_transfer_amount == expected_r_transfer_amount, 'Incorrect r_transfer_amount calculation');
+// }
+
+
+
+// //
+// // transfer & _transfer
+// //
+
+// #[test]
+// #[available_gas(2000000)]
+// fn test_transfer() {
+//     let mut state = setup();
+//     testing::set_caller_address(OWNER());
+//     assert(ERC20Impl::transfer(ref state, RECIPIENT(), VALUE), 'Should return true');
+
+//     // assert_only_event_transfer(OWNER(), RECIPIENT(), VALUE);
+//     assert(ERC20Impl::balance_of(@state, RECIPIENT()) == (VALUE), 'Balance should eq VALUE');
+//     assert(ERC20Impl::balance_of(@state, OWNER()) == (SUPPLY),'Should eq supply - VALUE');
+//     assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Total supply should not change');
+// }
 
 // #[test]
 // #[ignore]
@@ -279,7 +357,7 @@ fn test_transfer() {
 // }
 
 // //
-// // increase_allowance & increaseAllowance
+// // increase_allowance
 // //
 
 // #[test]
@@ -317,7 +395,7 @@ fn test_transfer() {
 // }
 
 // //
-// // decrease_allowance & decreaseAllowance
+// // decrease_allowance 
 // //
 
 // #[test]
@@ -393,4 +471,5 @@ fn test_transfer() {
 //     assert_event_transfer(from, to, value);
 //     // utils::assert_no_events_left(ZERO());
 // }
+
 

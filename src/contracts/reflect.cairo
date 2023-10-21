@@ -28,13 +28,17 @@ mod REFLECT {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, _name: felt252, _symbol: felt252, _supply: u256, _creator:ContractAddress
+        ref self: ContractState,
+        _name: felt252,
+        _symbol: felt252,
+        _supply: u256,
+        _creator: ContractAddress
     ) {
         self._name.write(_name);
         self._symbol.write(_symbol);
         self._decimals.write(9);
         let MAX: u256 =
-            7237005577332262213973186563042994240829374041602535252466099000494570602495; //2**252 - 1
+            115792089237316195423570985008687907853269984665640564039457584007913129639935; //2**256 - 1
         self._tTotal.write(_supply);
         self._rTotal.write(MAX - (MAX % self._tTotal.read()));
         self._rOwned.write(_creator, self._rTotal.read());
@@ -349,8 +353,7 @@ mod REFLECT {
         fn _get_values(self: @ContractState, t_amount: u256) -> (u256, u256, u256, u256, u256) {
             let (t_transfer_amount, t_fee) = self._get_t_values(t_amount);
             let current_rate = self._get_rate();
-            let (r_amount, r_transfer_amount, r_fee) = self
-                ._get_r_values(t_amount, t_fee, current_rate);
+            let (r_amount, r_transfer_amount, r_fee) = self._get_r_values(t_amount, t_fee, current_rate);
             return (r_amount, r_transfer_amount, r_fee, t_transfer_amount, t_fee);
         }
 
