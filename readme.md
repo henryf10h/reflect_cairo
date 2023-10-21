@@ -1,8 +1,11 @@
 # Reflective Standards in Cairo 🐫
 
+_Desafía lo establecido, imagina lo inexplorado y crea caminos donde otros ven callejones sin salida._
+
 ## Overview 🌐
 
 This repository is dedicated to the exploration and development of reflective standards and assets using the Cairo language. Reflective assets have the unique property of automatically redistributing a portion of transactions to existing holders, creating a self-rewarding mechanism.
+
 ![Description of Image](public/alter.png)
 
 ## Goals 🎯
@@ -86,6 +89,7 @@ The following tools are utilized in this project:
 Here are some resources to get more familiar with the underlying technologies:
 
 - [Technical Paper on Reflect Contracts by Anonymous Builder](https://forum.openzeppelin.com/t/a-technical-whitepaper-for-reflect-contracts/14297)
+- [Reflect.finance Github](https://github.com/reflectfinance)
 - [Cairo Book](https://book.cairo-lang.org/)
 - [Cairo by Example](https://cairo-by-example.com/)
 - [StarkNet Book](https://book.starknet.io/index.html/)
@@ -109,5 +113,3 @@ sierra --version
 ### Contribution ✨
 We welcome contributions from the community! Whether you're a seasoned developer or just getting started, there's room for everyone to make an impact. If you have ideas, optimizations, you just want to write tests or anything aligned with reflective standards, please feel free to raise an issue or submit a pull request.
 
-### Final Thoughts 💭
-Let's come together to create, inspire, and redefine the boundaries of what's possible."
