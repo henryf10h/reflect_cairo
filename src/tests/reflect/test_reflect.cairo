@@ -145,7 +145,7 @@ fn test__approve_to_zero() {
 
 #[test]
 #[available_gas(2000000)]
-fn test_get_current_supply() {
+fn test__get_current_supply() {
     let mut state = setup();  // Assuming setup initializes your contract state
     
     let (r_supply, t_supply) = InternalImpl::_get_current_supply(@state);
@@ -162,7 +162,7 @@ fn test_get_current_supply() {
 
 #[test]
 #[available_gas(2000000)]
-fn test_get_rate() {
+fn test__get_rate() {
     let mut state = setup();  // Assuming setup initializes your contract state
     
     let rate = InternalImpl::_get_rate(@state);
@@ -178,44 +178,89 @@ fn test_get_rate() {
 
 #[test]
 #[available_gas(2000000)]
-fn test_get_t_values() {
+fn test__get_t_values() {
     let mut state = setup();  // Assuming setup initializes your contract state
 
-    let t_amount = 1000000;
+    let t_amount:u256 = 1000000;
+    let fee:u256 = t_amount/100;
 
     let (t_transfer_amount, t_fee) = InternalImpl::_get_t_values(@state, t_amount);
 
-    let fee = t_amount/100;
+    let expected_t_transfer_amount:u256 = t_amount - fee;  // Corrected this line
+    let tTransferAmount:u256 = t_transfer_amount;
 
-    let expected_t_transfer_amount = t_amount - fee;  // Corrected this line
-    t_transfer_amount.print();
-    expected_t_transfer_amount.print();
-    assert(t_fee == fee, 'Incorrect t_fee calculation');
-    assert(t_transfer_amount == expected_t_transfer_amount, 'Incorrect t_transfer_amount calculation');
+    assert(t_fee == fee, 'Incorrect t_fee');
+    assert(tTransferAmount == expected_t_transfer_amount, 'Incorrect t_transfer_amount');
+} 
+
+
+#[test]
+#[available_gas(2000000)]
+fn test__get_r_values() {
+    let mut state = setup();  // Assuming setup initializes your contract state
+
+    let t_amount: u256 = 1000000;
+    let t_fee: u256 = t_amount / 100;
+    let current_rate: u256 = InternalImpl::_get_rate(@state);  // Replace with your rate
+
+    let (r_amount, r_transfer_amount, r_fee) = InternalImpl::_get_r_values(@state, t_amount, t_fee, current_rate);
+
+    let expected_r_amount = t_amount * current_rate;
+    let expected_r_fee = t_fee * current_rate;
+    let expected_r_transfer_amount = r_amount - r_fee;
+
+    assert(r_amount == expected_r_amount, 'Incorrect r_amount');
+    assert(r_fee == expected_r_fee, 'Incorrect r_fee');
+    assert(r_transfer_amount == expected_r_transfer_amount, 'Incorrect r_transfer_amount');
+} 
+
+// //
+// // _get_values
+// //
+
+#[test]
+#[available_gas(2000000)]
+fn test__get_values() {
+    let mut state = setup();  // Assuming setup initializes your contract state
+
+    let t_amount: u256 = 1000;
+
+    let (r_amount, r_transfer_amount, r_fee, t_transfer_amount, t_fee) = InternalImpl::_get_values(@state, t_amount);
+
+    let expected_t_fee = t_amount / 100;
+    let expected_t_transfer_amount = t_amount - expected_t_fee;
+    let current_rate = InternalImpl::_get_rate(@state);
+    let expected_r_amount = t_amount * current_rate;
+    let expected_r_fee = expected_t_fee * current_rate;
+    let expected_r_transfer_amount = expected_r_amount - expected_r_fee;
+
+    assert(t_fee == expected_t_fee, 'Incorrect t_fee calculation');
+    assert(t_transfer_amount == expected_t_transfer_amount, 'Incorrect t_transfer_amount');
+    assert(r_amount == expected_r_amount, 'Incorrect r_amount calculation');
+    assert(r_fee == expected_r_fee, 'Incorrect r_fee calculation');
+    assert(r_transfer_amount == expected_r_transfer_amount, 'Incorrect r_transfer_amount');
 }
 
+// //
+// // _reflect_fee
+// //
 
-// #[test]
-// #[available_gas(2000000)]
-// fn test_get_r_values() {
-//     let mut state = setup();  // Assuming setup initializes your contract state
+#[test]
+#[available_gas(2000000)]
+fn test__reflect_fee() {
+    let mut state = setup();  // Assuming setup initializes your contract state
 
-//     let t_amount: u256 = 1000000;
-//     let t_fee: u256 = t_amount / 100;
-//     let current_rate: u256 = InternalImpl::_get_rate(@state);  // Replace with your rate
+    let r_fee: u256 = 500;
+    let t_fee: u256 = 500;
+    let initial_tFeeTotal:u256 = REFLECT::REFLECTImpl::total_fees(@state);
+    let initial_rTotal:u256 = REFLECT::REFLECTImpl::r_total(@state);
 
-//     let (r_amount, r_transfer_amount, r_fee) = InternalImpl::_get_r_values(@state, t_amount, t_fee, current_rate);
-
-//     let expected_r_amount = t_amount * current_rate;
-//     let expected_r_fee = t_fee * current_rate;
-//     let expected_r_transfer_amount = r_amount - r_fee;
-
-//     assert(r_amount == expected_r_amount, 'Incorrect r_amount calculation');
-//     assert(r_fee == expected_r_fee, 'Incorrect r_fee calculation');
-//     assert(r_transfer_amount == expected_r_transfer_amount, 'Incorrect r_transfer_amount calculation');
-// }
+    InternalImpl::_reflect_fee(ref state, r_fee, t_fee);
 
 
+    assert(REFLECT::REFLECTImpl::r_total(@state) == initial_rTotal - r_fee, 'Incorrect reflection of r_fee');
+    assert(REFLECT::REFLECTImpl::total_fees(@state) == initial_tFeeTotal + t_fee, 'Incorrect reflection of t_fee');
+}
 
 // //
 // // transfer & _transfer

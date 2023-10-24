@@ -183,6 +183,10 @@ mod REFLECT {
         //     self._isExcluded.read(account)
         // }
 
+        fn r_total(self: @ContractState) -> u256 {
+            self._rTotal.read()
+        }
+
         fn total_fees(self: @ContractState) -> u256 {
             self._tFeeTotal.read()
         }
