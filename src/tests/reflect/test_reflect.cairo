@@ -266,216 +266,268 @@ fn test__reflect_fee() {
 // // transfer & _transfer
 // //
 
-// #[test]
-// #[available_gas(2000000)]
-// fn test_transfer() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     assert(ERC20Impl::transfer(ref state, RECIPIENT(), VALUE), 'Should return true');
+#[test]
+#[available_gas(3000000)]
+fn test_transfer() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    let transfer_value:u256 = 500000000000000000;
 
-//     // assert_only_event_transfer(OWNER(), RECIPIENT(), VALUE);
-//     assert(ERC20Impl::balance_of(@state, RECIPIENT()) == (VALUE), 'Balance should eq VALUE');
-//     assert(ERC20Impl::balance_of(@state, OWNER()) == (SUPPLY),'Should eq supply - VALUE');
-//     assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Total supply should not change');
-// }
+    // Using the _get_t_values and _get_r_values functions
+    let (t_transfer_amount, t_fee) = InternalImpl::_get_t_values(@state, transfer_value);
+    let current_rate = InternalImpl::_get_rate(@state);
+    let (r_amount, r_transfer_amount, r_fee) = InternalImpl::_get_r_values(@state, transfer_value, t_fee, current_rate);
+    
+    ERC20Impl::transfer(ref state, RECIPIENT(), transfer_value);
+   
+    // Update the assertions accordingly
+    let redistributed_fee_to_recipient = (t_fee * t_transfer_amount) / SUPPLY;
+    let redistributed_fee_to_owner = (t_fee * (SUPPLY - transfer_value)) / SUPPLY;
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test__transfer() {
-//     let mut state = setup();
+    // Adjust the expected balance of the recipient to include the redistributed fee.
+    let adjusted_t_transfer_amount:u256 = t_transfer_amount + redistributed_fee_to_recipient;
+    let adjusted_t_owner_amount:u256 = (SUPPLY - transfer_value) + redistributed_fee_to_owner;
 
-//     InternalImpl::_transfer(ref state, OWNER(), RECIPIENT(), VALUE);
+    // Define a tolerance (e.g., 1% of the SUPPLY)
+    let tolerance: u256 = SUPPLY / 100;
 
-//     assert_only_event_transfer(OWNER(), RECIPIENT(), VALUE);
-//     assert(ERC20Impl::balance_of(@state, RECIPIENT()) == VALUE, 'Balance should eq amount');
-//     assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY - VALUE, 'Should eq supply - amount');
-//     assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Total supply should not change');
-// }
+    // Check that the values are within tolerance
+    let lower_bound_recipient = adjusted_t_transfer_amount - tolerance;
+    let upper_bound_recipient = adjusted_t_transfer_amount + tolerance;
+    assert(ERC20Impl::balance_of(@state, RECIPIENT()) >= lower_bound_recipient && ERC20Impl::balance_of(@state, RECIPIENT()) <= upper_bound_recipient, 'Bal1 should be within tolerance');
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('u256_sub Overflow',))]
-// fn test__transfer_not_enough_balance() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
+    let lower_bound_owner = adjusted_t_owner_amount - tolerance;
+    let upper_bound_owner = adjusted_t_owner_amount + tolerance;
 
-//     let balance_plus_one = SUPPLY + 1;
-//     InternalImpl::_transfer(ref state, OWNER(), RECIPIENT(), balance_plus_one);
-// }
+    assert(ERC20Impl::balance_of(@state, OWNER()) >= lower_bound_owner && ERC20Impl::balance_of(@state, OWNER()) <= upper_bound_owner, 'Bal2 should be within tolerance');
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('ERC20: transfer from 0',))]
-// fn test__transfer_from_zero() {
-//     let mut state = setup();
-//     InternalImpl::_transfer(ref state, Zeroable::zero(), RECIPIENT(), VALUE);
-// }
+    // You could keep the total_supply assertion as is since it's expected to remain exact
+    assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Sup should not change');
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('ERC20: transfer to 0',))]
-// fn test__transfer_to_zero() {
-//     let mut state = setup();
-//     InternalImpl::_transfer(ref state, OWNER(), Zeroable::zero(), VALUE);
-// }
+#[test]
+#[available_gas(3000000)]
+fn test__transfer() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    let transfer_value:u256 = 500000000000000000;
+
+     // Using the _get_t_values and _get_r_values functions
+    let (t_transfer_amount, t_fee) = InternalImpl::_get_t_values(@state, transfer_value);
+    let current_rate = InternalImpl::_get_rate(@state);
+    let (r_amount, r_transfer_amount, r_fee) = InternalImpl::_get_r_values(@state, transfer_value, t_fee, current_rate);
+
+    InternalImpl::_transfer(ref state, OWNER(), RECIPIENT(), transfer_value);
+
+    // Update the assertions accordingly
+    let redistributed_fee_to_recipient = (t_fee * t_transfer_amount) / SUPPLY;
+    let redistributed_fee_to_owner = (t_fee * (SUPPLY - transfer_value)) / SUPPLY;
+
+    // Adjust the expected balance of the recipient to include the redistributed fee.
+    let adjusted_t_transfer_amount:u256 = t_transfer_amount + redistributed_fee_to_recipient;
+    let adjusted_t_owner_amount:u256 = (SUPPLY - transfer_value) + redistributed_fee_to_owner;
+
+    // Define a tolerance (e.g., 1% of the SUPPLY)
+    let tolerance: u256 = SUPPLY / 100;
+
+    // Check that the values are within tolerance
+    let lower_bound_recipient = adjusted_t_transfer_amount - tolerance;
+    let upper_bound_recipient = adjusted_t_transfer_amount + tolerance;
+    assert(ERC20Impl::balance_of(@state, RECIPIENT()) >= lower_bound_recipient && ERC20Impl::balance_of(@state, RECIPIENT()) <= upper_bound_recipient, 'Bal1 should be within tolerance');
+
+    let lower_bound_owner = adjusted_t_owner_amount - tolerance;
+    let upper_bound_owner = adjusted_t_owner_amount + tolerance;
+    assert(ERC20Impl::balance_of(@state, OWNER()) >= lower_bound_owner && ERC20Impl::balance_of(@state, OWNER()) <= upper_bound_owner, 'Bal2 should be within tolerance');
+
+    assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Sup should not change');
+}
+
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('u256_sub Overflow',))]
+fn test__transfer_not_enough_balance() {
+    let mut state = setup();
+    testing::set_caller_address(RECIPIENT());
+
+    let balance_plus_one = 100000;
+    InternalImpl::_transfer(ref state, RECIPIENT(), OWNER(), balance_plus_one);
+}
+
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('Transfer from the zero address',))]
+fn test__transfer_from_zero() {
+    let mut state = setup();
+    InternalImpl::_transfer(ref state, Zeroable::zero(), RECIPIENT(), VALUE);
+}
+
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('Transfer to the zero address',))]
+fn test__transfer_to_zero() {
+    let mut state = setup();
+    InternalImpl::_transfer(ref state, OWNER(), Zeroable::zero(), VALUE);
+}
 
 // //
 // // transfer_from
 // //
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test_transfer_from() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     ERC20Impl::approve(ref state, SPENDER(), VALUE);
-//     utils::drop_event(ZERO());
+#[test]
+#[available_gas(3000000)]
+fn test_transfer_from() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    let transfer_value:u256 = 500000000000000000;
+    ERC20Impl::approve(ref state, SPENDER(), transfer_value);
 
-//     testing::set_caller_address(SPENDER());
-//     assert(ERC20Impl::transfer_from(ref state, OWNER(), RECIPIENT(), VALUE), 'Should return true');
+    testing::set_caller_address(SPENDER());
+    assert(ERC20Impl::transfer_from(ref state, OWNER(), RECIPIENT(), transfer_value), 'Should return true');
 
-//     assert_event_approval(OWNER(), SPENDER(), 0);
-//     assert_only_event_transfer(OWNER(), RECIPIENT(), VALUE);
+    // Using the _get_t_values and _get_r_values functions
+    let (t_transfer_amount, t_fee) = InternalImpl::_get_t_values(@state, transfer_value);
+    let current_rate = InternalImpl::_get_rate(@state);
+    let (_, _, _) = InternalImpl::_get_r_values(@state, transfer_value, t_fee, current_rate);
 
-//     assert(ERC20Impl::balance_of(@state, RECIPIENT()) == VALUE, 'Should eq amount');
-//     assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY - VALUE, 'Should eq supply - amount');
-//     assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == 0, 'Should eq 0');
-//     assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Total supply should not change');
-// }
+    // Update the assertions accordingly
+    let redistributed_fee_to_recipient = (t_fee * t_transfer_amount) / SUPPLY;
+    let redistributed_fee_to_owner = (t_fee * (SUPPLY - transfer_value)) / SUPPLY;
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test_transfer_from_doesnt_consume_infinite_allowance() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     ERC20Impl::approve(ref state, SPENDER(), BoundedInt::max());
+    // Adjust the expected balance of the recipient to include the redistributed fee.
+    let adjusted_t_transfer_amount:u256 = t_transfer_amount + redistributed_fee_to_recipient;
+    let adjusted_t_owner_amount:u256 = (SUPPLY - transfer_value) + redistributed_fee_to_owner;
 
-//     testing::set_caller_address(SPENDER());
-//     ERC20Impl::transfer_from(ref state, OWNER(), RECIPIENT(), VALUE);
+    // Define a tolerance (e.g., 1% of the SUPPLY)
+    let tolerance: u256 = SUPPLY / 100;
 
-//     assert(
-//         ERC20Impl::allowance(@state, OWNER(), SPENDER()) == BoundedInt::max(),
-//         'Allowance should not change'
-//     );
-// }
+    // Check that the values are within tolerance
+    let lower_bound_recipient = adjusted_t_transfer_amount - tolerance;
+    let upper_bound_recipient = adjusted_t_transfer_amount + tolerance;
+    assert(ERC20Impl::balance_of(@state, RECIPIENT()) >= lower_bound_recipient && ERC20Impl::balance_of(@state, RECIPIENT()) <= upper_bound_recipient, 'Bal1 should be within tolerance');
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('u256_sub Overflow',))]
-// fn test_transfer_from_greater_than_allowance() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     ERC20Impl::approve(ref state, SPENDER(), VALUE);
+    let lower_bound_owner = adjusted_t_owner_amount - tolerance;
+    let upper_bound_owner = adjusted_t_owner_amount + tolerance;
+    assert(ERC20Impl::balance_of(@state, OWNER()) >= lower_bound_owner && ERC20Impl::balance_of(@state, OWNER()) <= upper_bound_owner, 'Bal2 should be within tolerance');
 
-//     testing::set_caller_address(SPENDER());
-//     let allowance_plus_one = VALUE + 1;
-//     ERC20Impl::transfer_from(ref state, OWNER(), RECIPIENT(), allowance_plus_one);
-// }
+    assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == 0, 'Should eq 0');
+    assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Total supply should not change');
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('ERC20: transfer to 0',))]
-// fn test_transfer_from_to_zero_address() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     ERC20Impl::approve(ref state, SPENDER(), VALUE);
+#[test]
+#[ignore]
+#[available_gas(2000000)]
+fn test_transfer_from_doesnt_consume_infinite_allowance() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    ERC20Impl::approve(ref state, SPENDER(), BoundedInt::max());
 
-//     testing::set_caller_address(SPENDER());
-//     ERC20Impl::transfer_from(ref state, OWNER(), Zeroable::zero(), VALUE);
-// }
+    testing::set_caller_address(SPENDER());
+    ERC20Impl::transfer_from(ref state, OWNER(), RECIPIENT(), VALUE);
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('u256_sub Overflow',))]
-// fn test_transfer_from_from_zero_address() {
-//     let mut state = setup();
-//     ERC20Impl::transfer_from(ref state, Zeroable::zero(), RECIPIENT(), VALUE);
-// }
+    assert(
+        ERC20Impl::allowance(@state, OWNER(), SPENDER()) == BoundedInt::max(),
+        'Allowance should not change'
+    );
+}
+
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('u256_sub Overflow',))]
+fn test_transfer_from_greater_than_allowance() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    ERC20Impl::approve(ref state, SPENDER(), VALUE);
+
+    testing::set_caller_address(SPENDER());
+    let allowance_plus_one = VALUE + 1;
+    ERC20Impl::transfer_from(ref state, OWNER(), RECIPIENT(), allowance_plus_one);
+}
+
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('Transfer to the zero address',))]
+fn test_transfer_from_to_zero_address() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    ERC20Impl::approve(ref state, SPENDER(), VALUE);
+
+    testing::set_caller_address(SPENDER());
+    ERC20Impl::transfer_from(ref state, OWNER(), Zeroable::zero(), VALUE);
+}
+
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('Transfer from the zero address',))]
+fn test_transfer_from_from_zero_address() {
+    let mut state = setup();
+    ERC20Impl::transfer_from(ref state, Zeroable::zero(), RECIPIENT(), VALUE);
+}
 
 // //
 // // increase_allowance
 // //
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test_increase_allowance() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     ERC20Impl::approve(ref state, SPENDER(), VALUE);
-//     utils::drop_event(ZERO());
+#[test]
+#[available_gas(2000000)]
+fn test_increase_allowance() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    ERC20Impl::approve(ref state, SPENDER(), VALUE);
 
-//     assert(REFLECT::increase_allowance(ref state, SPENDER(), VALUE), 'Should return true');
+    assert(REFLECT::increase_allowance(ref state, SPENDER(), VALUE), 'Should return true');
 
-//     assert_only_event_approval(OWNER(), SPENDER(), VALUE * 2);
-//     assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE * 2, 'Should be amount * 2');
-// }
+    assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE * 2, 'Should be amount * 2');
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('ERC20: approve to 0',))]
-// fn test_increase_allowance_to_zero_address() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     REFLECT::increase_allowance(ref state, Zeroable::zero(), VALUE);
-// }
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('Approve to the zero addr',))]
+fn test_increase_allowance_to_zero_address() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    REFLECT::increase_allowance(ref state, Zeroable::zero(), VALUE);
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('ERC20: approve from 0',))]
-// fn test_increase_allowance_from_zero_address() {
-//     let mut state = setup();
-//     REFLECT::increase_allowance(ref state, SPENDER(), VALUE);
-// }
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('Approve from the zero addr',))]
+fn test_increase_allowance_from_zero_address() {
+    let mut state = setup();
+    REFLECT::increase_allowance(ref state, SPENDER(), VALUE);
+}
 
 // //
 // // decrease_allowance 
 // //
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// fn test_decrease_allowance() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     ERC20Impl::approve(ref state, SPENDER(), VALUE);
-//     utils::drop_event(ZERO());
+#[test]
+#[available_gas(2000000)]
+fn test_decrease_allowance() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    ERC20Impl::approve(ref state, SPENDER(), VALUE);
 
-//     assert(REFLECT::decrease_allowance(ref state, SPENDER(), VALUE), 'Should return true');
+    assert(REFLECT::decrease_allowance(ref state, SPENDER(), VALUE), 'Should return true');
 
-//     assert_only_event_approval(OWNER(), SPENDER(), 0);
-//     assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE - VALUE, 'Should be 0');
-// }
+    assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE - VALUE, 'Should be 0');
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('u256_sub Overflow',))]
-// fn test_decrease_allowance_to_zero_address() {
-//     let mut state = setup();
-//     testing::set_caller_address(OWNER());
-//     REFLECT::decrease_allowance(ref state, Zeroable::zero(), VALUE);
-// }
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('u256_sub Overflow',))]
+fn test_decrease_allowance_to_zero_address() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+    REFLECT::decrease_allowance(ref state, Zeroable::zero(), VALUE);
+}
 
-// #[test]
-// #[ignore]
-// #[available_gas(2000000)]
-// #[should_panic(expected: ('u256_sub Overflow',))]
-// fn test_decrease_allowance_from_zero_address() {
-//     let mut state = setup();
-//     REFLECT::decrease_allowance(ref state, SPENDER(), VALUE);
-// }
+#[test]
+#[available_gas(2000000)]
+#[should_panic(expected: ('u256_sub Overflow',))]
+fn test_decrease_allowance_from_zero_address() {
+    let mut state = setup();
+    REFLECT::decrease_allowance(ref state, SPENDER(), VALUE);
+}
 
 // //
 // // Helpers
