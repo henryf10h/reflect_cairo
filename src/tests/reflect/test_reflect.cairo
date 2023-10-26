@@ -572,21 +572,14 @@ fn test_reflect() {
 
     // Check the total reflections and total fees
     let (r_amount, _, _, _, _) = InternalImpl::_get_values(@state, reflection_amount);
+    let expected_total_reflections:u256 = before_total_reflections - r_amount;
+    let expected_total_fees:u256 = before_total_fees + reflection_amount;
 
     // Call the reflect function with a reflection amount of 500
     assert(REFLECT::REFLECTImpl::reflect(ref state, reflection_amount) == true, 'Reflect should return true');
     
-    let expected_total_reflections:u256 = before_total_reflections - r_amount;
-    let expected_total_fees:u256 = before_total_fees + reflection_amount;
-    
     let actual_total_reflections = REFLECT::REFLECTImpl::r_total(@state);
     let actual_total_fees = REFLECT::REFLECTImpl::total_fees(@state);
-
-    // Debug prints for clarification
-    actual_total_reflections.print();
-    expected_total_reflections.print();
-    actual_total_fees.print();
-    expected_total_fees.print();
     
     assert(actual_total_reflections == expected_total_reflections, 'Reflections should be updated');
     assert(actual_total_fees == expected_total_fees, 'Total fees should be updated');
@@ -595,6 +588,30 @@ fn test_reflect() {
 // //
 // // token_from_reflection
 // //
+
+#[test]
+#[available_gas(2000000)]
+fn test_token_from_reflection() {
+    let mut state = setup();
+    
+    // Assume a known rAmount for testing, could be any value <= _rTotal
+    let rAmount: u256 = 1000;  
+
+    // Ensure rAmount is valid
+    let current_r_total = REFLECT::REFLECTImpl::r_total(@state);
+    assert(rAmount <= current_r_total, 'rAmt <= total reflections');
+
+    // Get the current conversion rate
+    let current_rate = InternalImpl::_get_rate(@state);
+
+    // Calculate the expected tAmount based on the known conversion rate
+    let expected_tAmount: u256 = rAmount / current_rate;
+
+    // Call the function and compare the result to the expected tAmount
+    let actual_tAmount = REFLECT::REFLECTImpl::token_from_reflection(@state, rAmount);
+    assert(actual_tAmount == expected_tAmount, 'Should match expected tAmts');
+}
+
 
 // //
 // // Helpers
