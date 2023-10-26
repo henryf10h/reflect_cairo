@@ -370,6 +370,37 @@ fn test__transfer_to_zero() {
 }
 
 // //
+// // _transfer_standard
+// //
+
+#[test]
+#[available_gas(2000000)]
+fn test_transfer_standard() {
+    let mut state = setup();  // Assume setup initializes the contract state
+    let sender_address = OWNER();
+    let recipient_address = RECIPIENT();
+    let transfer_amount: u256 = 1000000;
+
+    // Capture the initial balances
+    let initial_balance_sender = ERC20Impl::balance_of(@state, sender_address);
+    let initial_balance_recipient = ERC20Impl::balance_of(@state, recipient_address);
+
+    // Call the _transfer_standard function
+    InternalImpl::_transfer_standard(ref state, sender_address, recipient_address, transfer_amount);
+
+    // Capture the new balances
+    let new_balance_sender = ERC20Impl::balance_of(@state, sender_address);
+    let new_balance_recipient = ERC20Impl::balance_of(@state, recipient_address);
+    new_balance_sender.print();
+    (initial_balance_sender - transfer_amount).print();
+
+    // Assert the balances have been updated correctly
+    assert(new_balance_sender <= initial_balance_sender - transfer_amount, 'Sender balance incorrect');
+    assert(new_balance_recipient >= initial_balance_recipient + transfer_amount, 'Recipient balance incorrect');
+}// todo: make it more rigorous
+
+
+// //
 // // transfer_from
 // //
 

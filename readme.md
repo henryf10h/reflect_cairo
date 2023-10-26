@@ -70,7 +70,7 @@ starkli declare --watch target/dev/reflect_cairo_REFLECT.sierra.json --account ~
 Deploy the contract with the desired name, symbol, supply, and owner arguments using the following command:
 
 ```bash
-starkli deploy --watch 0x072baf5a9be0be5576203b60503ec5ac3ebbfac40a38c9e4466f31fc4b717f96 str:name str:symbol u256:10000000000000000 0x67e6ad8187767ef41f2f3bc225d33d31b37dd9bbee7b628f4b6b16b90d26666 --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json 
+starkli deploy --watch <your declared hash> str:name str:symbol u256:10000000000000000 <Owner's starknet address> --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json 
 ```
 Make sure to replace str:name, str:symbol, u256:10000000000000000, and 0x67e6ad8187767ef41f2f3bc225d33d31b37dd9bbee7b628f4b6b16b90d26666 with your desired token name, symbol, supply, and owner address respectively.
 
