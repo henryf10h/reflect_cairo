@@ -530,6 +530,73 @@ fn test_decrease_allowance_from_zero_address() {
 }
 
 // //
+// // r_total
+// //
+
+#[test]
+#[available_gas(2000000)]
+fn test_r_total() {
+    let mut state = setup();
+
+    // Check the returned value
+    assert(REFLECT::REFLECTImpl::r_total(@state) == 115792089237316195423570985008687907853269984665640564039457000000000000000000, 'Should return: 2**256 - 1');
+}
+
+// //
+// // total_fees
+// //
+
+#[test]
+#[available_gas(2000000)]
+fn test_total_fees() {
+    let mut state = setup();
+
+    // Check the returned value
+    assert(REFLECT::REFLECTImpl::total_fees(@state) == 0, 'total_fees should return 500');
+}
+
+// //
+// // reflect
+// //
+
+#[test]
+#[available_gas(2000000)]
+fn test_reflect() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+
+    let reflection_amount: u256 = 500;
+
+    let before_total_reflections:u256 = REFLECT::REFLECTImpl::r_total(@state);
+    let before_total_fees:u256 = REFLECT::REFLECTImpl::total_fees(@state);
+
+    // Check the total reflections and total fees
+    let (r_amount, _, _, _, _) = InternalImpl::_get_values(@state, reflection_amount);
+
+    // Call the reflect function with a reflection amount of 500
+    assert(REFLECT::REFLECTImpl::reflect(ref state, reflection_amount) == true, 'Reflect should return true');
+    
+    let expected_total_reflections:u256 = before_total_reflections - r_amount;
+    let expected_total_fees:u256 = before_total_fees + reflection_amount;
+    
+    let actual_total_reflections = REFLECT::REFLECTImpl::r_total(@state);
+    let actual_total_fees = REFLECT::REFLECTImpl::total_fees(@state);
+
+    // Debug prints for clarification
+    actual_total_reflections.print();
+    expected_total_reflections.print();
+    actual_total_fees.print();
+    expected_total_fees.print();
+    
+    assert(actual_total_reflections == expected_total_reflections, 'Reflections should be updated');
+    assert(actual_total_fees == expected_total_fees, 'Total fees should be updated');
+}
+
+// //
+// // token_from_reflection
+// //
+
+// //
 // // Helpers
 // //
 
