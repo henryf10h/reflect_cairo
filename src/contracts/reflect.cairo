@@ -37,8 +37,7 @@ mod REFLECT {
         self._name.write(_name);
         self._symbol.write(_symbol);
         self._decimals.write(9);
-        let MAX: u256 =
-            115792089237316195423570985008687907853269984665640564039457584007913129639935; //2**256 - 1
+        let MAX: u256 = BoundedInt::max(); // 2^256 - 1
         self._tTotal.write(_supply);
         self._rTotal.write(MAX - (MAX % self._tTotal.read()));
         self._rOwned.write(_creator, self._rTotal.read());
