@@ -454,7 +454,7 @@ fn test_transfer_from_doesnt_consume_infinite_allowance() {
 
     assert(
         ERC20Impl::allowance(@state, OWNER(), SPENDER()) == BoundedInt::max() - VALUE,
-        'Allowance should not change'
+        'Allowance is not infinite'
     );
 }
 
