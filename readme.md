@@ -88,11 +88,18 @@ The following tools are utilized in this project:
 
 Here are some resources to get more familiar with the underlying technologies:
 
-- [Technical Paper on Reflect Contracts by Anonymous Builder](https://forum.openzeppelin.com/t/a-technical-whitepaper-for-reflect-contracts/14297)
-- [Reflect.finance Github](https://github.com/reflectfinance)
+- [Community Paper on Reflective tokens](https://forum.openzeppelin.com/t/a-technical-whitepaper-for-reflect-contracts/14297)
 - [Cairo Book](https://book.cairo-lang.org/)
 - [Cairo by Example](https://cairo-by-example.com/)
 - [StarkNet Book](https://book.starknet.io/index.html/)
+
+## Contracts
+
+Solidity contracts as a reference:
+
+- [reflect.sol](https://github.com/reflectfinance/reflect-contracts)
+- [ERC20 wrapper](https://etherscan.io/address/0x8e4b1e38c082c7ceb638c084c102352421fe607f#code)
+- faucet. Coming soon...
 
 ## Version
 
