@@ -49,11 +49,11 @@ scarb build
 scarb test
 ```
 
-Deploying the `reflect.cairo` contract involves a two-step process: declaration and deployment. Below are the steps for both processes along with an explanation of the four arguments required by the contract's constructor.
+Deploying the `reflect_V0.cairo` contract involves a two-step process: declaration and deployment. Below are the steps for both processes along with an explanation of the four arguments required by the contract's constructor.
 
 ### Arguments Explanation
 
-The `reflect.cairo` contract constructor requires four arguments:
+The `reflect_V0.cairo` contract constructor requires four arguments:
 
 1. **name**: The name of the token.
 2. **symbol**: The symbol of the token.
@@ -63,7 +63,7 @@ The `reflect.cairo` contract constructor requires four arguments:
 ### 1. Declaration
 
 ```bash
-starkli declare --watch target/dev/reflect_cairo_REFLECT.sierra.json --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json
+starkli declare --watch target/dev/reflect_cairo_reflect_cairo_contracts_reflect_V0_REFLECT.contract_class.json --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json
 ```
 ### 2. Deployment
 
