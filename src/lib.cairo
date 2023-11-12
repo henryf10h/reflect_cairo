@@ -4,6 +4,7 @@ mod contracts {
 }
 mod interfaces {
     mod rinterface;
+    mod winterface;
 }
 #[cfg(test)]
 mod tests {
