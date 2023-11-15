@@ -6,19 +6,25 @@ mod ERC20WRAPPERV0 {
     use starknet::get_caller_address;
     use zeroable::Zeroable;
     use reflect_cairo::interfaces::winterface::IERC20WRAPPER;
+    use openzeppelin::security::reentrancyguard::ReentrancyGuard;
 
+    // Declare the ReentrancyGuard component
+    component!(path: ReentrancyGuard, storage: Storage);
 
     #[storage]
     struct Storage {
-        _rOwned: LegacyMap<ContractAddress, u256>,
-        _tOwned: LegacyMap<ContractAddress, u256>,
+        _rTokenBalance: LegacyMap<ContractAddress, u256>,
+        _tTokenBalance: LegacyMap<ContractAddress, u256>,
         _allowances: LegacyMap<(ContractAddress, ContractAddress), u256>,
-        _rTotal: u256,
-        _tTotal: u256,
+        _rTokenSupply: u256,
+        _tTokenSupply: u256,
         _tFeeTotal: u256,
         _name: felt252,
         _symbol: felt252,
-        _decimals: u8
+        _decimals: u8,
+        _tContract: ContractAddress,
+        #[substorage(v0)]
+        reentrancy: ReentrancyGuard::Stogare
     }
 
     // ... Events and other necessary structs ...
@@ -29,16 +35,14 @@ mod ERC20WRAPPERV0 {
         _name: felt252,
         _symbol: felt252,
         _supply: u256,
-        _creator: ContractAddress
+        _creator: ContractAddress,
+        _tContract: ContractAddress
     ) {
         self._name.write(_name);
         self._symbol.write(_symbol);
         self._decimals.write(9);
-        let MAX: u256 = BoundedInt::max(); // 2^256 - 1
-        self._tTotal.write(_supply);
-        self._rTotal.write(MAX - (MAX % self._tTotal.read()));
-        self._rOwned.write(_creator, self._rTotal.read());
-        self.emit(Transfer { from: Zeroable::zero(), to: _creator, value: self._rTotal.read() });
+        self._tContract.write(_tContract);
+        self.emit(Transfer { from: Zeroable::zero(), to: _creator, value: 0 });
     }
 
     #[event]
@@ -92,13 +96,14 @@ mod ERC20WRAPPERV0 {
 
         /// Returns the value of tokens in existence.
         fn total_supply(self: @ContractState) -> u256 {
-            self._tTotal.read()
+            self._tTokenSupply.read()
         }
 
         /// Returns the amount of tokens owned by `account`.
         /// Todo: we need to define tokenFromReflection.
         fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
-            return self.token_from_reflection(self._rOwned.read(account));
+            let (r ,t) = _get_current_supply();
+            return (self._rTokenBalance.read(account) * t) / r;
         }
 
         /// Returns the remaining number of tokens that `spender` is
@@ -171,28 +176,63 @@ mod ERC20WRAPPERV0 {
     // ... Reflection logic ...
 
     #[external(v0)]
-    impl REFLECTImpl of IREFLECT<ContractState> {
-        fn r_total(self: @ContractState) -> u256 {
-            self._rTotal.read()
+    impl ERC20WRAPPERImpl of IERC20WRAPPER<ContractState> {
+
+        fn r_token_supply(self: @ContractState) -> u256 {
+            self._rTokenSupply.read()
         }
 
         fn total_fees(self: @ContractState) -> u256 {
             self._tFeeTotal.read()
         }
 
-        fn reflect(ref self: ContractState, tAmount: u256) -> bool {
-            let sender = get_caller_address();
-            let (rAmount, _, _, _, _) = self._get_values(tAmount);
-            self._rOwned.write(sender, self._rOwned.read(sender) - rAmount);
-            self._rTotal.write(self._rTotal.read() - rAmount);
-            self._tFeeTotal.write(self._tFeeTotal.read() + tAmount);
-            return true;
+        // Function to deposit tokens into the contract
+        fn deposit(ref self: ContractState, amount: u256) -> bool {
+            let caller = get_caller_address();
+            // Assuming _pull_underlying or a similar function is implemented to transfer tokens
+            // self._pull_underlying(self._tContract.read(), caller, amount);
+            
+            let (rAmount, tAmount) = self._get_values(amount);
+            self._tTokenSupply.write(self._tTokenSupply.read() + tAmount);
+            self._rTokenBalance.write(caller, self._rTokenBalance.read(caller) + rAmount);
+            
+            self.emit(Transfer { from: caller, to: ContractAddress::from_address(self.address()), value: amount });
+            true
         }
 
-        fn token_from_reflection(self: @ContractState, rAmount: u256) -> u256 {
-            assert(rAmount <= self._rTotal.read(), 'Less than total reflections');
+        // Function to withdraw tokens from the contract
+        fn withdraw(ref self: ContractState, amount: u256) -> bool {
+            let caller = get_caller_address();
+            assert(self.balance_of(caller) >= amount, 'Insufficient balance');
+
+            let (rAmount, tAmount) = self._get_values(amount);
+            self._tTokenSupply.write(self._tTokenSupply.read() - tAmount);
+            self._rTokenBalance.write(caller, self._rTokenBalance.read(caller) - rAmount);
+
+            // Assuming _push_underlying or a similar function is implemented to transfer tokens
+            // self._push_underlying(self._tContract.read(), caller, amount);
+            
+            self.emit(Transfer { from: ContractAddress::from_address(self.address()), to: caller, value: amount });
+            true
+        }
+
+        // Function to distribute rTokens to everyone (reflect fee)
+        fn rTokenToEveryone(ref self: ContractState, tAmount: u256) -> bool {
+            let caller = get_caller_address();
+            assert(!caller.is_zero(), 'Caller is the zero address');
+
+            let (rAmount, _, _, _, _) = self._get_values(tAmount);
+            self._rTokenSupply.write(self._rTokenSupply.read() - rAmount);
+            self._tFeeTotal.write(self._tFeeTotal.read() + tAmount);
+
+            true
+        }
+
+        // Function to convert rTokens to tTokens
+        fn tTokenFromrToken(self: @ContractState, rAmount: u256) -> u256 {
+            assert(rAmount <= self._rTokenSupply.read(), 'Amount exceeds total rTokens');
             let currentRate = self._get_rate();
-            return rAmount / currentRate;
+            rAmount * currentRate
         }
 
     }
@@ -236,14 +276,14 @@ mod ERC20WRAPPERV0 {
             tAmount: u256
         ) {
             let (rAmount, rTransferAmount, rFee, tTransferAmount, tFee) = self._get_values(tAmount);
-            self._rOwned.write(sender, self._rOwned.read(sender) - rAmount);
-            self._rOwned.write(recipient, self._rOwned.read(recipient) + rTransferAmount);
+            self._rTokenBalance.write(sender, self._rTokenBalance.read(sender) - rAmount);
+            self._rTokenBalance.write(recipient, self._rTokenBalance.read(recipient) + rTransferAmount);
             self._reflect_fee(rFee, tFee);
             self.emit(Transfer { from: sender, to: recipient, value: tTransferAmount });
         }
 
         fn _reflect_fee(ref self: ContractState, r_fee: u256, t_fee: u256) {
-            self._rTotal.write(self._rTotal.read() - r_fee);
+            self._rTokenSupply.write(self._rTokenSupply.read() - r_fee);
             self._tFeeTotal.write(self._tFeeTotal.read() + t_fee);
         }
 
@@ -275,8 +315,8 @@ mod ERC20WRAPPERV0 {
         }
 
         fn _get_current_supply(self: @ContractState) -> (u256, u256) {
-            let mut rSupply = self._rTotal.read();
-            let mut tSupply = self._tTotal.read();
+            let mut rSupply = self._rTokenSupply.read();
+            let mut tSupply = self._tTokenSupply.read();
             return (rSupply, tSupply);
         }
     }
