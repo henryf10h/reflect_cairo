@@ -8,6 +8,7 @@ mod ERC20WRAPPERV0 {
     use zeroable::Zeroable;
     use reflect_cairo::interfaces::winterface::IERC20WRAPPER;
     use openzeppelin::security::reentrancyguard::ReentrancyGuard as ReentrancyGuardComponent;
+    use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
 
     component!(
         path: ReentrancyGuardComponent, storage: reentrancy_guard, event: ReentrancyGuardEvent
@@ -38,15 +39,12 @@ mod ERC20WRAPPERV0 {
         ref self: ContractState,
         _name: felt252,
         _symbol: felt252,
-        _supply: u256,
-        _creator: ContractAddress,
         _tContract: ContractAddress
     ) {
         self._name.write(_name);
         self._symbol.write(_symbol);
         self._decimals.write(9);
         self._tContract.write(_tContract);
-        self.emit(Transfer { from: Zeroable::zero(), to: _creator, value: 0 });
     }
 
     #[event]
@@ -54,7 +52,6 @@ mod ERC20WRAPPERV0 {
     enum Event {
         Transfer: Transfer,
         Approval: Approval,
-        #[flat]
         ReentrancyGuardEvent: ReentrancyGuardComponent::Event
     }
 
@@ -198,7 +195,7 @@ mod ERC20WRAPPERV0 {
 
             let caller = get_caller_address();
             // Assuming _pull_underlying or a similar function is implemented to transfer tokens
-            // self._pull_underlying(self._tContract.read(), caller, amount);
+            self._pull_underlying(self._tContract.read(), caller, amount);
             
             let (rSupply ,tSupply) = self._get_current_supply();
             let fee = amount / 100;
@@ -229,7 +226,7 @@ mod ERC20WRAPPERV0 {
             self._tFeeTotal.write(self._tFeeTotal.read() + net);
 
             // Assuming _push_underlying or a similar function is implemented to transfer tokens
-            // self._push_underlying(self._tContract.read(), caller, amount);
+            self._push_underlying(self._tContract.read(), caller, amount);
             self.emit(Transfer { from: get_contract_address(), to: caller, value: amount });
 
             self.reentrancy_guard.end();
@@ -263,6 +260,7 @@ mod ERC20WRAPPERV0 {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
+
         fn _approve(
             ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
         ) {
@@ -294,6 +292,7 @@ mod ERC20WRAPPERV0 {
             self._rTokenBalance.write(recipient, self._rTokenBalance.read(sender) + ((amount-fee)*rSupply / tSupply));
             self._rTokenSupply.write(self._rTokenSupply.read() - fee);
             self._tFeeTotal.write(self._tFeeTotal.read() + fee);
+
             self.emit(Transfer { from: sender, to: recipient, value: amount - fee });
         }
 
@@ -301,6 +300,26 @@ mod ERC20WRAPPERV0 {
             let mut rSupply = self._rTokenSupply.read();
             let mut tSupply = self._tTokenSupply.read();
             return (rSupply, tSupply);
+        }
+
+        fn _pull_underlying(
+            ref self: ContractState,
+            erc20_contract: ContractAddress,
+            from: ContractAddress,
+            amount: u256
+        ) {
+            let result = IERC20Dispatcher { contract_address: erc20_contract }.transfer_from(from, get_contract_address(), amount);
+            assert(result, 'TRANSFER_FAILED');
+        }
+
+        fn _push_underlying(
+            ref self: ContractState,
+            erc20_contract: ContractAddress,
+            to: ContractAddress,
+            amount: u256
+        ) {
+            let result = IERC20Dispatcher { contract_address: erc20_contract }.transfer(to, amount);
+            assert(result, 'TRANSFER_FAILED');
         }
     }
 
