@@ -191,9 +191,10 @@ mod ERC20WRAPPERV0 {
 
         // Function to deposit tokens into the contract
         fn deposit(ref self: ContractState, amount: u256) -> bool {
-            self.reentrancy_guard.start();
 
             let caller = get_caller_address();
+
+            self.reentrancy_guard.start();
             // Assuming _pull_underlying or a similar function is implemented to transfer tokens
             self._pull_underlying(self._tContract.read(), caller, amount);
             
@@ -204,7 +205,7 @@ mod ERC20WRAPPERV0 {
             self._tFeeTotal.write(self._tFeeTotal.read() + net);
             self._rTokenSupply.write(self._rTokenSupply.read() + (net*rSupply / tSupply));
             self._rTokenBalance.write(caller, self._rTokenBalance.read(caller) + (net*rSupply / tSupply));
-            self.emit(Transfer { from: caller, to: get_contract_address(), value: amount });
+            self.emit(Transfer { from: caller, to: self._tContract.read(), value: amount });
 
             self.reentrancy_guard.end();
 
@@ -297,10 +298,17 @@ mod ERC20WRAPPERV0 {
         }
 
         fn _get_current_supply(self: @ContractState) -> (u256, u256) {
-            let mut rSupply = self._rTokenSupply.read();
-            let mut tSupply = self._tTokenSupply.read();
+            let rSupply = self._rTokenSupply.read();
+            let tSupply = self._tTokenSupply.read();
+
+            if rSupply == 0 || tSupply == 0 {
+                return (1000000000, 1);  // Return predefined values
+            }
+
+            // Continue with the usual logic if neither supply is zero
             return (rSupply, tSupply);
         }
+
 
         fn _pull_underlying(
             ref self: ContractState,
@@ -308,7 +316,7 @@ mod ERC20WRAPPERV0 {
             from: ContractAddress,
             amount: u256
         ) {
-            let result = IERC20Dispatcher { contract_address: erc20_contract }.transfer_from(from, get_contract_address(), amount);
+            let result = IERC20Dispatcher { contract_address: erc20_contract }.transfer_from(from, self._tContract.read(), amount);
             assert(result, 'TRANSFER_FAILED');
         }
 
