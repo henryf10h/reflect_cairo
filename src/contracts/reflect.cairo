@@ -1,5 +1,5 @@
 #[starknet::contract]
-mod REFLECTV0 {
+mod REFLECT {
     use integer::BoundedInt;
     use openzeppelin::token::erc20::interface::IERC20;
     use starknet::ContractAddress;
