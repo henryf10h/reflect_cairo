@@ -6,7 +6,7 @@ _Desafía lo establecido, imagina lo inexplorado y crea caminos donde otros ven 
 
 This repository is dedicated to the exploration and development of reflective standards and assets using the Cairo language. Reflective assets have the unique property of automatically redistributing a portion of transactions to existing holders, creating a self-rewarding mechanism.
 
-![Description of Image](public/alter.png)
+![Description of Image](public/reflect.png)
 
 ## Goals 🎯
 

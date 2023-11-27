@@ -192,12 +192,11 @@ mod ERC20WRAPPERV0 {
         // Function to deposit tokens into the contract
         fn deposit(ref self: ContractState, amount: u256) -> bool {
 
-            let caller = get_caller_address();
-
             self.reentrancy_guard.start();
+
+            let caller = get_caller_address();
             // Assuming _pull_underlying or a similar function is implemented to transfer tokens
             self._pull_underlying(self._tContract.read(), caller, amount);
-            
             let (rSupply ,tSupply) = self._get_current_supply();
             let fee = amount / 100;
             let net = amount - fee;
