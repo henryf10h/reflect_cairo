@@ -1,16 +1,16 @@
 use starknet::{ContractAddress, ClassHash, syscalls, SyscallResult};
 
 #[starknet::interface]
-trait ITokenFactory<TContractState> {
+trait IReflectFactory<TContractState> {
     // Function to deploy a new reflective token contract
     fn create_token(ref self: TContractState, name: felt252, symbol: felt252, supply: u256, creator: ContractAddress) -> SyscallResult<ContractAddress>;
     fn update_token_class_hash(ref self: TContractState, token_class_hash: ClassHash);
 }
 
 #[starknet::contract]
-mod TokenFactory {
+mod ReflectFactory {
     use core::traits::Into;
-    use super::ITokenFactory;
+    use super::IReflectFactory;
     use starknet::{ContractAddress, ClassHash, syscalls, SyscallResult};
     use openzeppelin::access::ownable::Ownable as ownable_component;
     use serde::Serde;
@@ -49,7 +49,7 @@ mod TokenFactory {
     }
 
     #[external(v0)]
-    impl TokenFactory of ITokenFactory<ContractState> {
+    impl TokenFactory of IReflectFactory<ContractState> {
         fn create_token(
             ref self: ContractState,
             name: felt252,

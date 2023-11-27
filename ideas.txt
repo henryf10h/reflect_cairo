@@ -1,9 +1,9 @@
 // DECLARE // 
 
-starkli declare --watch target/dev/reflect_cairo_REFLECT.sierra.json --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json
+starkli declare --watch target/dev/reflect_cairo_reflect_cairo_contracts_reflect_REFLECT.contract_class.json 
 
 // DEPLOY //
 
-starkli deploy 0x072baf5a9be0be5576203b60503ec5ac3ebbfac40a38c9e4466f31fc4b717f96 --watch  str:Alter str:ALT u256:1000000000000000000 0x052E6AD8187767eF41F2F3bc225D33d31B37DD9BBEE7B628F4b6b16b90D293EC --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json 
+starkli deploy 0x078cd31777cbdd4d36f4c78fd448461a8df2b7f698aafe425f232c58397c71f4 --watch 0x052E6AD8187767eF41F2F3bc225D33d31B37DD9BBEE7B628F4b6b16b90D293EC 0x076f2df0b976e466d9d11f4b549b17b73e567d70d587110ac1ebcfac059b013e
 
 -32603: Internal error
