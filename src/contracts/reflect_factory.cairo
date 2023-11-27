@@ -4,6 +4,7 @@ use starknet::{ContractAddress, ClassHash, syscalls, SyscallResult};
 trait ITokenFactory<TContractState> {
     // Function to deploy a new reflective token contract
     fn create_token(ref self: TContractState, name: felt252, symbol: felt252, supply: u256, creator: ContractAddress) -> SyscallResult<ContractAddress>;
+    fn update_token_class_hash(ref self: TContractState, token_class_hash: ClassHash);
 }
 
 #[starknet::contract]
@@ -74,8 +75,17 @@ mod TokenFactory {
 
             // Return the address of the newly deployed contract
             SyscallResult::Ok(contract_address)
+        }
+
+            // Function to update the class hash of the token contract
+        fn update_token_class_hash(ref self: ContractState, token_class_hash: ClassHash) {
+            // Ensure that only the owner can call this function
+            self.ownable.assert_only_owner();
+            // Update the class hash in the storage
+            self.token_class_hash.write(token_class_hash);
+        }
     }
-    }
+
 
     #[generate_trait]
     impl InternalFunctions of InternalFunctionsTrait{
