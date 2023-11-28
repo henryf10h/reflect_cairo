@@ -49,11 +49,11 @@ scarb build
 scarb test
 ```
 
-Deploying the `reflect_V0.cairo` contract involves a two-step process: declaration and deployment. Below are the steps for both processes along with an explanation of the four arguments required by the contract's constructor.
+Deploying the `reflect.cairo` contract involves a two-step process: declaration and deployment. Below are the steps for both processes along with an explanation of the four arguments required by the contract's constructor.
 
 ### Arguments Explanation
 
-The `reflect_V0.cairo` contract constructor requires four arguments:
+The `reflect.cairo` contract constructor requires four arguments:
 
 1. **name**: The name of the token.
 2. **symbol**: The symbol of the token.
@@ -92,6 +92,7 @@ Here are some resources to get more familiar with the underlying technologies:
 - [Cairo Book](https://book.cairo-lang.org/)
 - [Cairo by Example](https://cairo-by-example.com/)
 - [StarkNet Book](https://book.starknet.io/index.html/)
+- [OpenZeppelin Docs](docs.openzeppelin.com/contracts-cairo)
 
 ## Contracts
 
