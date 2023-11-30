@@ -63,14 +63,14 @@ The `reflect.cairo` contract constructor requires four arguments:
 ### 1. Declaration
 
 ```bash
-starkli declare --watch target/dev/reflect_cairo_reflect_cairo_contracts_reflect_V0_REFLECT.contract_class.json --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json
+starkli declare --watch <target/dev/YOUR_FILE_contract_class.json>
 ```
 ### 2. Deployment
 
 Deploy the contract with the desired name, symbol, supply, and owner arguments using the following command:
 
 ```bash
-starkli deploy --watch <your declared hash> str:name str:symbol u256:10000000000000000 <Owner's starknet address> --account ~/.starkli-wallets/deployer/account.json --keystore ~/.starkli-wallets/deployer/keystore.json 
+starkli deploy --watch <your declared hash> str:name str:symbol u256:10000000000000000 <Owner's starknet address> 
 ```
 Make sure to replace str:name, str:symbol, u256:10000000000000000, and 0x67e6ad8187767ef41f2f3bc225d33d31b37dd9bbee7b628f4b6b16b90d26666 with your desired token name, symbol, supply, and owner address respectively.
 
