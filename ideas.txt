@@ -9,3 +9,9 @@ starkli deploy 0x078cd31777cbdd4d36f4c78fd448461a8df2b7f698aafe425f232c58397c71f
 // INVOKE //
 
 starkli invoke 0x0236ef6623486d982b293dc7c32090e49a12f0c95d851f6637925641bb26e57d create_token str:test2 str:tst2 u256:1234567890987654321 0x052E6AD8187767eF41F2F3bc225D33d31B37DD9BBEE7B628F4b6b16b90D293EC --rpc https://starknet-goerli.infura.io/v3/cb9c230f999e41d2b06c125c0daf71a0
+
+///
+
+class_hash = 0x076f2df0b976e466d9d11f4b549b17b73e567d70d587110ac1ebcfac059b013e
+
+deploy factory!!! -> pass the contract to refleyer!!! -> pass ABI to refleyer

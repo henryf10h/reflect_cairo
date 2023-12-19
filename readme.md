@@ -11,7 +11,7 @@ This repository is dedicated to the exploration and development of reflective st
 ## Goals 🎯
 
 - **Translate and Adapt**: Our primary goal (by now) is to translate the well-known `reflect.sol` from Solidity to Cairo, ensuring that the unique properties of reflective assets are preserved and optimized for the Cairo environment.
-- **Wrapper**: Coming soon...
+- **Wrapper**: ERC20 token wrapper. Go from ERC20 to refelctive token.
 
 ## Installation 🔧
 
