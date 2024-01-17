@@ -1,30 +1,17 @@
-//  .--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--. 
-// / .. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \
-// \ \/\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ \/ /
-//  \/ /`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'\/ / 
-//  / /\                                                                                    / /\ 
-// / /\ \   ____       __ _           _     ____       _           _ _   _                 / /\ \
-// \ \/ /  |  _ \ ___ / _| | ___  ___| |_  |  _ \ _ __(_)_ __ ___ (_| |_(___   _____ ___   \ \/ /
-//  \/ /   | |_) / _ | |_| |/ _ \/ __| __| | |_) | '__| | '_ ` _ \| | __| \ \ / / _ / __|   \/ / 
-//  / /\   |  _ |  __|  _| |  __| (__| |_ _|  __/| |  | | | | | | | | |_| |\ V |  __\__ \   / /\ 
-// / /\ \  |_| \_\___|_| |_|\___|\___|\__(_|_|   |_|  |_|_| |_| |_|_|\__|_| \_/ \___|___/  / /\ \
-// \ \/ /                                                                                  \ \/ /
-//  \/ /                                                                                    \/ / 
-//  / /\.--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--./ /\ 
-// / /\ \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \/\ \
-// \ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `' /
-//  `--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--' 
+// SPDX-License-Identifier: MIT
+// Reflecter.Finance Smart Contract
 
-//            __ _           _              _           
-//  _ __ ___ / _| | ___  ___| |_   ___ __ _(_)_ __ ___  
-// | '__/ _ | |_| |/ _ \/ __| __| / __/ _` | | '__/ _ \ 
-// | | |  __|  _| |  __| (__| |_ | (_| (_| | | | | (_) |
-// |_|  \___|_| |_|\___|\___|\__(_\___\__,_|_|_|  \___/ 
-//
+// Welcome to Reflecter.Finance - Innovating the DeFi Space!
+
+// This contract is part of the Reflecter.Finance ecosystem, a project dedicated
+// to bringing cutting-edge solutions and novel approaches to decentralized finance.
+// Our goal is to empower users with accessible, transparent, and secure financial tools.
+
 #[starknet::contract]
 mod REFLECT {
     use integer::BoundedInt;
     use openzeppelin::token::erc20::interface::IERC20;
+    use openzeppelin::token::erc20::interface::IERC20CamelOnly;
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use zeroable::Zeroable;
@@ -61,7 +48,7 @@ mod REFLECT {
         self._tTotal.write(_supply);
         self._rTotal.write(MAX - (MAX % self._tTotal.read()));
         self._rOwned.write(_creator, self._rTotal.read());
-        self.emit(Transfer { from: Zeroable::zero(), to: _creator, value: self._rTotal.read() });
+        self.emit(Transfer { from: Zeroable::zero(), to: _creator, value: self._tTotal.read() });
     }
 
     #[event]
@@ -96,7 +83,7 @@ mod REFLECT {
     // External
     //
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl ERC20Impl of IERC20<ContractState> {
         /// Returns the name of the token.
         fn name(self: @ContractState) -> felt252 {
@@ -155,8 +142,8 @@ mod REFLECT {
             amount: u256
         ) -> bool {
             let caller = get_caller_address();
-            self._transfer(sender, recipient, amount);
             self._approve(sender, caller, self._allowances.read((sender, caller)) - amount);
+            self._transfer(sender, recipient, amount);
             true
         }
 
@@ -171,7 +158,7 @@ mod REFLECT {
 
     /// Increases the allowance granted from the caller to `spender` by `added_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
-    #[external(v0)]
+    #[abi(embed_v0)]
     fn increase_allowance(
         ref self: ContractState, spender: ContractAddress, added_value: u256
     ) -> bool {
@@ -182,7 +169,7 @@ mod REFLECT {
 
     /// Decreases the allowance granted from the caller to `spender` by `subtracted_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
-    #[external(v0)]
+    #[abi(embed_v0)]
     fn decrease_allowance(
         ref self: ContractState, spender: ContractAddress, subtracted_value: u256
     ) -> bool {
@@ -191,9 +178,44 @@ mod REFLECT {
         true
     }
 
+    #[abi(embed_v0)]
+    impl ERC20CamelOnlyImpl of IERC20CamelOnly<ContractState> {
+
+        fn totalSupply(self: @ContractState) -> u256 {
+            ERC20Impl::total_supply(self)
+        }
+
+        fn balanceOf(self: @ContractState, account: ContractAddress) -> u256 {
+            ERC20Impl::balance_of(self, account)
+        }
+
+        fn transferFrom(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256
+        ) -> bool {
+            ERC20Impl::transfer_from(ref self, sender, recipient, amount)
+        }
+    }
+
+    #[abi(embed_v0)]
+        fn increaseAllowance(
+            ref self: ContractState, spender: ContractAddress, addedValue: u256
+        ) -> bool {
+            increase_allowance(ref self, spender, addedValue)
+        }
+
+    #[abi(embed_v0)]
+        fn decreaseAllowance(
+            ref self: ContractState, spender: ContractAddress, subtractedValue: u256
+        ) -> bool {
+            decrease_allowance(ref self, spender, subtractedValue)
+        }
+
     // ... Reflection logic ...
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl REFLECTImpl of IREFLECT<ContractState> {
         fn r_total(self: @ContractState) -> u256 {
             self._rTotal.read()

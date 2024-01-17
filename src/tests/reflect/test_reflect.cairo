@@ -483,11 +483,13 @@ fn test_transfer_from_to_zero_address() {
     ERC20Impl::transfer_from(ref state, OWNER(), Zeroable::zero(), VALUE);
 }
 
+// 'Transfer from the zero address' is not being checked, instead 'u256_sub Overflow' does before.
 #[test]
 #[available_gas(2000000)]
-#[should_panic(expected: ('Transfer from the zero address',))]
+#[should_panic(expected: ('u256_sub Overflow',))]
 fn test_transfer_from_from_zero_address() {
     let mut state = setup();
+    testing::set_caller_address(ZERO());
     ERC20Impl::transfer_from(ref state, Zeroable::zero(), RECIPIENT(), VALUE);
 }
 

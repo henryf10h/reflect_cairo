@@ -100,7 +100,6 @@ Solidity contracts as a reference:
 
 - [reflect.sol](https://github.com/reflectfinance/reflect-contracts)
 - [ERC20 wrapper](https://etherscan.io/address/0x8e4b1e38c082c7ceb638c084c102352421fe607f#code)
-- faucet. Coming soon...
 
 ## Version
 
