@@ -77,7 +77,7 @@ mod REFLECT {
     // External
     //
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl ERC20Impl of IERC20<ContractState> {
         /// Returns the name of the token.
         fn name(self: @ContractState) -> felt252 {
@@ -155,27 +155,27 @@ mod REFLECT {
 
     /// Increases the allowance granted from the caller to `spender` by `added_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
-    #[external(v0)]
-    fn increase_allowance(
-        ref self: ContractState, spender: ContractAddress, added_value: u256
-    ) -> bool {
-        let sender = get_caller_address();
-        self._approve(sender, spender, self._allowances.read((sender, spender)) + added_value);
-        true
-    }
+    #[abi(embed_v0)]
+        fn increase_allowance(
+            ref self: ContractState, spender: ContractAddress, added_value: u256
+        ) -> bool {
+            let sender = get_caller_address();
+            self._approve(sender, spender, self._allowances.read((sender, spender)) + added_value);
+            true
+        }
 
     /// Decreases the allowance granted from the caller to `spender` by `subtracted_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
-    #[external(v0)]
-    fn decrease_allowance(
-        ref self: ContractState, spender: ContractAddress, subtracted_value: u256
-    ) -> bool {
-        let sender = get_caller_address();
-        self._approve(sender, spender, self._allowances.read((sender, spender)) - subtracted_value);
-        true
-    }
+    #[abi(embed_v0)]
+        fn decrease_allowance(
+            ref self: ContractState, spender: ContractAddress, subtracted_value: u256
+        ) -> bool {
+            let sender = get_caller_address();
+            self._approve(sender, spender, self._allowances.read((sender, spender)) - subtracted_value);
+            true
+        }
 
-        #[abi(embed_v0)]
+    #[abi(embed_v0)]
     impl ERC20CamelOnlyImpl of IERC20CamelOnly<ContractState> {
 
         fn totalSupply(self: @ContractState) -> u256 {
@@ -213,7 +213,7 @@ mod REFLECT {
 
     // ... Reflection logic ...
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl REFLECTImpl of IREFLECT<ContractState> {
         fn is_excluded(self: @ContractState, account: ContractAddress) -> bool{
             self._isExcluded.read(account)
