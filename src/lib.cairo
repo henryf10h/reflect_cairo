@@ -7,6 +7,7 @@ mod contracts {
 mod interfaces {
     mod rinterface;
     mod winterface;
+    mod rinterfacev2;
 }
 #[cfg(test)]
 mod tests {
