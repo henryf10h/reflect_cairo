@@ -45,7 +45,7 @@ mod REFLECT {
         self._symbol.write(_symbol);
         self._decimals.write(9);
         let MAX: u256 = BoundedInt::max(); // 2^256 - 1
-        self._tTotal.write(_supply);
+        self._tTotal.write(_supply * 1000000000);
         self._rTotal.write(MAX - (MAX % self._tTotal.read()));
         self._rOwned.write(_creator, self._rTotal.read());
         self.emit(Transfer { from: Zeroable::zero(), to: _creator, value: self._tTotal.read() });
