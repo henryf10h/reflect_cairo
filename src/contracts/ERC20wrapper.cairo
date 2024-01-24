@@ -1,14 +1,14 @@
 #[starknet::contract]
 mod ERC20WRAPPERV0 {
     use integer::BoundedInt;
-    use openzeppelin::token::erc20::interface::IERC20;
+    use reflect_cairo::interfaces::rinterface::IERC20;
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use starknet::get_contract_address;
     use zeroable::Zeroable;
     use reflect_cairo::interfaces::winterface::IERC20WRAPPER;
-    use openzeppelin::security::reentrancyguard::ReentrancyGuard as ReentrancyGuardComponent;
-    use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use reflect_cairo::contracts::reentrancy_guard::ReentrancyGuardComponent as ReentrancyGuardComponent;
+    use reflect_cairo::interfaces::rinterface::{IERC20Dispatcher, IERC20DispatcherTrait};
 
     component!(
         path: ReentrancyGuardComponent, storage: reentrancy_guard, event: ReentrancyGuardEvent
@@ -80,7 +80,7 @@ mod ERC20WRAPPERV0 {
     // External
     //
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl ERC20Impl of IERC20<ContractState> {
         /// Returns the name of the token.
         fn name(self: @ContractState) -> felt252 {
@@ -156,7 +156,7 @@ mod ERC20WRAPPERV0 {
 
     /// Increases the allowance granted from the caller to `spender` by `added_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
-    #[external(v0)]
+    #[abi(embed_v0)]
     fn increase_allowance(
         ref self: ContractState, spender: ContractAddress, added_value: u256
     ) -> bool {
@@ -167,7 +167,7 @@ mod ERC20WRAPPERV0 {
 
     /// Decreases the allowance granted from the caller to `spender` by `subtracted_value`.
     /// Emits an [Approval](Approval) event indicating the updated allowance.
-    #[external(v0)]
+    #[abi(embed_v0)]
     fn decrease_allowance(
         ref self: ContractState, spender: ContractAddress, subtracted_value: u256
     ) -> bool {
@@ -178,7 +178,7 @@ mod ERC20WRAPPERV0 {
 
     // ... Reflection logic ...
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl ERC20WRAPPERImpl of IERC20WRAPPER<ContractState> {
 
         fn r_token_supply(self: @ContractState) -> u256 {

@@ -1,8 +1,8 @@
 #[starknet::contract]
 mod REFLECT {
     use integer::BoundedInt;
-    use openzeppelin::token::erc20::interface::IERC20;
-    use openzeppelin::token::erc20::interface::IERC20CamelOnly;
+    use reflect_cairo::interfaces::rinterface::IERC20;
+    use reflect_cairo::interfaces::rinterface::IERC20CamelOnly;
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use zeroable::Zeroable;
@@ -39,7 +39,7 @@ mod REFLECT {
         self._symbol.write(_symbol);
         self._decimals.write(9);
         let MAX: u256 = BoundedInt::max(); // 2^256 - 1
-        self._tTotal.write(_supply * 1000000000);
+        self._tTotal.write(_supply);
         self._rTotal.write(MAX - (MAX % self._tTotal.read()));
         self._rOwned.write(_creator, self._rTotal.read());
         self.emit(Transfer { from: Zeroable::zero(), to: _creator, value: self._tTotal.read() });
@@ -121,7 +121,6 @@ mod REFLECT {
 
         /// Moves `amount` tokens from the caller's token balance to `to`.
         /// Emits a [Transfer](Transfer) event.
-        /// todo: define internal _transfer.
         fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
             let sender = get_caller_address();
             self._transfer(sender, recipient, amount);
@@ -446,7 +445,7 @@ mod REFLECT {
                 i = i + 1;
             };
 
-            if earlyExit || rSupply < self._rTotal.read() / self._tTotal.read() {
+            if earlyExit || rSupply < (self._rTotal.read() / self._tTotal.read()) {
                 return (self._rTotal.read(), self._tTotal.read());
             }
 

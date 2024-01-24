@@ -2,11 +2,11 @@ use integer::BoundedInt;
 use reflect_cairo::tests::utils::constants::{
     ZERO, OWNER, SPENDER, RECIPIENT, NAME, SYMBOL, DECIMALS, SUPPLY, VALUE, SUPPLY9DECIMALS
 };
-use reflect_cairo::contracts::reflect::REFLECT::Approval;
-use reflect_cairo::contracts::reflect::REFLECT::ERC20Impl;
-use reflect_cairo::contracts::reflect::REFLECT::InternalImpl;
-use reflect_cairo::contracts::reflect::REFLECT::Transfer;
-use reflect_cairo::contracts::reflect::REFLECT;
+use reflect_cairo::contracts::reflect_draft::REFLECT::Approval;
+use reflect_cairo::contracts::reflect_draft::REFLECT::ERC20Impl;
+use reflect_cairo::contracts::reflect_draft::REFLECT::InternalImpl;
+use reflect_cairo::contracts::reflect_draft::REFLECT::Transfer;
+use reflect_cairo::contracts::reflect_draft::REFLECT;
 use starknet::ContractAddress;
 use starknet::contract_address_const;
 use starknet::testing;
@@ -149,7 +149,6 @@ fn test__get_current_supply() {
     
     let (r_supply, t_supply) = InternalImpl::_get_current_supply(@state);
 
-    // r_supply.print();
     
     let expected_r_supply: u256 = 115792089237316195423570985008687907853269984665640564039457000000000000000000;  // rTotal
     
@@ -268,7 +267,7 @@ fn test__reflect_fee() {
 // //
 
 #[test]
-#[available_gas(3000000)]
+#[available_gas(3500000)]
 fn test_transfer() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
@@ -307,7 +306,7 @@ fn test_transfer() {
 }
 
 #[test]
-#[available_gas(3000000)]
+#[available_gas(3500000)]
 fn test__transfer() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
@@ -375,7 +374,7 @@ fn test__transfer_to_zero() {
 // //
 
 #[test]
-#[available_gas(2000000)]
+#[available_gas(3000000)]
 fn test_transfer_standard() {
     let mut state = setup();  // Assume setup initializes the contract state
     let sender_address = OWNER();
@@ -404,7 +403,7 @@ fn test_transfer_standard() {
 // //
 
 #[test]
-#[available_gas(3000000)]
+#[available_gas(3500000)]
 fn test_transfer_from() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
@@ -568,8 +567,6 @@ fn test_decrease_allowance_from_zero_address() {
 #[available_gas(2000000)]
 fn test_r_total() {
     let mut state = setup();
-
-    REFLECT::REFLECTImpl::r_total(@state).print();
 
     // Check the returned value
     assert(REFLECT::REFLECTImpl::r_total(@state) == 115792089237316195423570985008687907853269984665640564039457000000000000000000, 'Should return: 2**256 - 1');

@@ -12,7 +12,7 @@ mod ReflectFactory {
     use core::traits::Into;
     use super::IReflectFactory;
     use starknet::{ContractAddress, ClassHash, syscalls, SyscallResult};
-    use openzeppelin::access::ownable::Ownable as ownable_component;
+    use reflect_cairo::contracts::ownable::OwnableComponent as ownable_component;
     use serde::Serde;
     use poseidon::poseidon_hash_span;
 
@@ -48,7 +48,7 @@ mod ReflectFactory {
         self.token_class_hash.write(token_class_hash);
     }
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl TokenFactory of IReflectFactory<ContractState> {
         fn create_token(
             ref self: ContractState,

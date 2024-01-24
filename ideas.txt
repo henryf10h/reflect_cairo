@@ -4,7 +4,7 @@ starkli declare --watch target/dev/reflect_cairo_reflect_cairo_contracts_reflect
 
 // DEPLOY //
 
-starkli deploy 0x078cd31777cbdd4d36f4c78fd448461a8df2b7f698aafe425f232c58397c71f4 --watch 0x01C401914de95Bb2000c150661c79B0778ae044eb1A09E05Fe9fd6D2c2F10B65 0x076f2df0b976e466d9d11f4b549b17b73e567d70d587110ac1ebcfac059b013e
+starkli deploy 0x01625ee23023cb85bb5718b6ac40f56fd478d24e1a63d250353417aba66974c6 --watch 0x01C401914de95Bb2000c150661c79B0778ae044eb1A09E05Fe9fd6D2c2F10B65 
 
 // INVOKE //
 
