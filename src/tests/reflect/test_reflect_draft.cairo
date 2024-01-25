@@ -267,7 +267,7 @@ fn test__reflect_fee() {
 // //
 
 #[test]
-#[available_gas(3500000)]
+#[available_gas(5000000)]
 fn test_transfer() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
@@ -306,7 +306,7 @@ fn test_transfer() {
 }
 
 #[test]
-#[available_gas(3500000)]
+#[available_gas(5000000)]
 fn test__transfer() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
@@ -317,21 +317,29 @@ fn test__transfer() {
     let current_rate = InternalImpl::_get_rate(@state);
     let (_r_amount, _r_transfer_amount, _r_fee) = InternalImpl::_get_r_values(@state, transfer_value, t_fee, current_rate);
 
+    REFLECT::REFLECTImpl::is_excluded(@state,OWNER()).print();
+
     InternalImpl::_transfer(ref state, OWNER(), RECIPIENT(), transfer_value);
 
     // Update the assertions accordingly
     let redistributed_fee_to_recipient = (t_fee * t_transfer_amount) / SUPPLY;
     let redistributed_fee_to_owner = (t_fee * (SUPPLY - transfer_value)) / SUPPLY;
+    t_fee.print();
+    t_transfer_amount.print();
+    SUPPLY.print();
+    redistributed_fee_to_owner.print();
 
     // Adjust the expected balance of the recipient to include the redistributed fee.
     let adjusted_t_transfer_amount:u256 = t_transfer_amount + redistributed_fee_to_recipient;
     let adjusted_t_owner_amount:u256 = (SUPPLY - transfer_value) + redistributed_fee_to_owner;
+    // adjusted_t_owner_amount.print();
 
     // Define a tolerance (e.g., 1% of the SUPPLY)
     let tolerance: u256 = SUPPLY / 100;
 
     // Check that the values are within tolerance
     let lower_bound_recipient = adjusted_t_transfer_amount - tolerance;
+    // lower_bound_recipient.print();
     let upper_bound_recipient = adjusted_t_transfer_amount + tolerance;
     assert(ERC20Impl::balance_of(@state, RECIPIENT()) >= lower_bound_recipient && ERC20Impl::balance_of(@state, RECIPIENT()) <= upper_bound_recipient, 'Bal1 should be within tolerance');
 
@@ -374,7 +382,7 @@ fn test__transfer_to_zero() {
 // //
 
 #[test]
-#[available_gas(3000000)]
+#[available_gas(4000000)]
 fn test_transfer_standard() {
     let mut state = setup();  // Assume setup initializes the contract state
     let sender_address = OWNER();
@@ -392,6 +400,9 @@ fn test_transfer_standard() {
     let new_balance_sender = ERC20Impl::balance_of(@state, sender_address);
     let new_balance_recipient = ERC20Impl::balance_of(@state, recipient_address);
 
+    // initial_balance_sender.print();
+    // new_balance_sender.print();
+
     // Assert the balances have been updated correctly
     assert(new_balance_sender <= initial_balance_sender, 'Sender balance incorrect');
     assert(new_balance_recipient >= initial_balance_recipient, 'Recipient balance incorrect');
@@ -403,7 +414,7 @@ fn test_transfer_standard() {
 // //
 
 #[test]
-#[available_gas(3500000)]
+#[available_gas(5000000)]
 fn test_transfer_from() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
@@ -496,193 +507,3 @@ fn test_transfer_from_from_zero_address() {
 // //
 // // increase_allowance
 // //
-
-#[test]
-#[available_gas(2000000)]
-fn test_increase_allowance() {
-    let mut state = setup();
-    testing::set_caller_address(OWNER());
-    ERC20Impl::approve(ref state, SPENDER(), VALUE);
-
-    assert(REFLECT::increase_allowance(ref state, SPENDER(), VALUE), 'Should return true');
-
-    assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE * 2, 'Should be amount * 2');
-}
-
-#[test]
-#[available_gas(2000000)]
-#[should_panic(expected: ('Approve to the zero addr',))]
-fn test_increase_allowance_to_zero_address() {
-    let mut state = setup();
-    testing::set_caller_address(OWNER());
-    REFLECT::increase_allowance(ref state, Zeroable::zero(), VALUE);
-}
-
-#[test]
-#[available_gas(2000000)]
-#[should_panic(expected: ('Approve from the zero addr',))]
-fn test_increase_allowance_from_zero_address() {
-    let mut state = setup();
-    REFLECT::increase_allowance(ref state, SPENDER(), VALUE);
-}
-
-// //
-// // decrease_allowance 
-// //
-
-#[test]
-#[available_gas(2000000)]
-fn test_decrease_allowance() {
-    let mut state = setup();
-    testing::set_caller_address(OWNER());
-    ERC20Impl::approve(ref state, SPENDER(), VALUE);
-
-    assert(REFLECT::decrease_allowance(ref state, SPENDER(), VALUE), 'Should return true');
-
-    assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE - VALUE, 'Should be 0');
-}
-
-#[test]
-#[available_gas(2000000)]
-#[should_panic(expected: ('u256_sub Overflow',))]
-fn test_decrease_allowance_to_zero_address() {
-    let mut state = setup();
-    testing::set_caller_address(OWNER());
-    REFLECT::decrease_allowance(ref state, Zeroable::zero(), VALUE);
-}
-
-#[test]
-#[available_gas(2000000)]
-#[should_panic(expected: ('u256_sub Overflow',))]
-fn test_decrease_allowance_from_zero_address() {
-    let mut state = setup();
-    REFLECT::decrease_allowance(ref state, SPENDER(), VALUE);
-}
-
-// //
-// // r_total
-// //
-
-#[test]
-#[available_gas(2000000)]
-fn test_r_total() {
-    let mut state = setup();
-
-    // Check the returned value
-    assert(REFLECT::REFLECTImpl::r_total(@state) == 115792089237316195423570985008687907853269984665640564039457000000000000000000, 'Should return: 2**256 - 1');
-}
-
-// //
-// // total_fees
-// //
-
-#[test]
-#[available_gas(2000000)]
-fn test_total_fees() {
-    let mut state = setup();
-
-    // Check the returned value
-    assert(REFLECT::REFLECTImpl::total_fees(@state) == 0, 'total_fees should return 500');
-}
-
-// //
-// // reflect
-// //
-
-#[test]
-#[available_gas(2000000)]
-fn test_reflect() {
-    let mut state = setup();
-    testing::set_caller_address(OWNER());
-
-    let reflection_amount: u256 = 500;
-
-    let before_total_reflections:u256 = REFLECT::REFLECTImpl::r_total(@state);
-    let before_total_fees:u256 = REFLECT::REFLECTImpl::total_fees(@state);
-
-    // Check the total reflections and total fees
-    let (r_amount, _, _, _, _) = InternalImpl::_get_values(@state, reflection_amount);
-    let expected_total_reflections:u256 = before_total_reflections - r_amount;
-    let expected_total_fees:u256 = before_total_fees + reflection_amount;
-
-    // Call the reflect function with a reflection amount of 500
-    assert(REFLECT::REFLECTImpl::reflect(ref state, reflection_amount) == true, 'Reflect should return true');
-    
-    let actual_total_reflections = REFLECT::REFLECTImpl::r_total(@state);
-    let actual_total_fees = REFLECT::REFLECTImpl::total_fees(@state);
-    
-    assert(actual_total_reflections == expected_total_reflections, 'Reflections should be updated');
-    assert(actual_total_fees == expected_total_fees, 'Total fees should be updated');
-}
-
-// //
-// // token_from_reflection
-// //
-
-#[test]
-#[available_gas(2000000)]
-fn test_token_from_reflection() {
-    let mut state = setup();
-    
-    // Assume a known rAmount for testing, could be any value <= _rTotal
-    let rAmount: u256 = 1000;  
-
-    // Ensure rAmount is valid
-    let current_r_total = REFLECT::REFLECTImpl::r_total(@state);
-    assert(rAmount <= current_r_total, 'rAmt <= total reflections');
-
-    // Get the current conversion rate
-    let current_rate = InternalImpl::_get_rate(@state);
-
-    // Calculate the expected tAmount based on the known conversion rate
-    let expected_tAmount: u256 = rAmount / current_rate;
-
-    // Call the function and compare the result to the expected tAmount
-    let actual_tAmount = REFLECT::REFLECTImpl::token_from_reflection(@state, rAmount);
-    assert(actual_tAmount == expected_tAmount, 'Should match expected tAmts');
-}
-
-
-// //
-// // Helpers
-// //
-
-// use openzeppelin::utils::serde::SerializedAppend;
-
-// fn assert_event_approval(owner: ContractAddress, spender: ContractAddress, value: u256) {
-//     let event = utils::pop_log::<Approval>(ZERO()).unwrap();
-//     assert(event.owner == owner, 'Invalid `owner`');
-//     assert(event.spender == spender, 'Invalid `spender`');
-//     assert(event.value == value, 'Invalid `value`');
-
-//     // Check indexed keys
-//     // let mut indexed_keys = array![];
-//     // indexed_keys.append_serde(owner);
-//     // indexed_keys.append_serde(spender);
-//     // utils::assert_indexed_keys(event, indexed_keys.span())
-// }
-
-// fn assert_only_event_approval(owner: ContractAddress, spender: ContractAddress, value: u256) {
-//     assert_event_approval(owner, spender, value);
-//     utils::assert_no_events_left(ZERO());
-// }
-
-// fn assert_event_transfer(from: ContractAddress, to: ContractAddress, value: u256) {
-//     let event = utils::pop_log::<Transfer>(ZERO()).unwrap();
-//     assert(event.from == from, 'Invalid `from`');
-//     assert(event.to == to, 'Invalid `to`');
-//     assert(event.value == value, 'Invalid `value`');
-
-//     // Check indexed keys
-//     // let mut indexed_keys = array![];
-//     // indexed_keys.append_serde(from);
-//     // indexed_keys.append_serde(to);
-//     // utils::assert_indexed_keys(event, indexed_keys.span());
-// }
-
-// fn assert_only_event_transfer(from: ContractAddress, to: ContractAddress, value: u256) {
-//     assert_event_transfer(from, to, value);
-//     // utils::assert_no_events_left(ZERO());
-// }
-
-

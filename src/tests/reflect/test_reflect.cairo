@@ -569,7 +569,7 @@ fn test_decrease_allowance_from_zero_address() {
 fn test_r_total() {
     let mut state = setup();
 
-    REFLECT::REFLECTImpl::r_total(@state).print();
+    // REFLECT::REFLECTImpl::r_total(@state).print();
 
     // Check the returned value
     assert(REFLECT::REFLECTImpl::r_total(@state) == 115792089237316195423570985008687907853269984665640564039457000000000000000000, 'Should return: 2**256 - 1');

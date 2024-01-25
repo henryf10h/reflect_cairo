@@ -138,8 +138,8 @@ mod REFLECT {
             amount: u256
         ) -> bool {
             let caller = get_caller_address();
-            self._transfer(sender, recipient, amount);
             self._approve(sender, caller, self._allowances.read((sender, caller)) - amount);
+            self._transfer(sender, recipient, amount);
             true
         }
 
@@ -332,13 +332,13 @@ mod REFLECT {
             let sender_is_excluded = self._isExcluded.read(sender);
             let recipient_is_excluded = self._isExcluded.read(recipient);
 
-            if sender_is_excluded || !recipient_is_excluded {
+            if sender_is_excluded && !recipient_is_excluded {
                 self._transfer_from_excluded(sender, recipient, amount);
-            } else if !sender_is_excluded || recipient_is_excluded {
+            } else if !sender_is_excluded && recipient_is_excluded {
                 self._transfer_to_excluded(sender, recipient, amount);
-            } else if !sender_is_excluded || !recipient_is_excluded {
+            } else if !sender_is_excluded && !recipient_is_excluded {
                 self._transfer_standard(sender, recipient, amount);
-            } else if sender_is_excluded || recipient_is_excluded {
+            } else if sender_is_excluded && recipient_is_excluded {
                 self._transfer_both_excluded(sender, recipient, amount);
             } else {
                 self._transfer_standard(sender, recipient, amount);
