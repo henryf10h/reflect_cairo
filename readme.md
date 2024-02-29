@@ -8,48 +8,12 @@ This repository is dedicated to the exploration and development of reflective st
 
 ![Description of Image](public/reflect.png)
 
-## Goals 🎯
-
-- **Translate and Adapt**: Our primary goal (by now) is to translate the well-known `reflect.sol` from Solidity to Cairo, ensuring that the unique properties of reflective assets are preserved and optimized for the Cairo environment.
-- **Wrapper**: ERC20 token wrapper. Go from ERC20 to refelctive token.
-
 ## Installation 🔧
 
 Before you can set up the project, you'll need to have `scarb` and `starkli` installed on your machine. If you don't have them installed, you can find the installation instructions on the official documentation:
 
 - [Scarb Installation](https://docs.swmansion.com/scarb/download.html)
 - [Starkli Installation](https://github.com/starkware-libs/starkli)
-
-## Project Setup 🛠️
-
-Once you have installed `scarb` and `starkli`, it's time to set up the project on your local machine. Follow the steps below:
-
-1. Create a new folder for the project.
-```bash
-mkdir your_project_name
-```
-2. Navigate to the new folder in your terminal.
-```bash
-cd your_project_name
-```
-3. Clone the repository into your new project folder.
-```bash
-git clone https://github.com/henryf10h/reflect_cairo.git
-```
-4. Change directory to the cloned repository.
-```bash
-cd reflect_cairo
-```
-5. Now you are ready to build the project using scarb.
-```bash
-scarb build
-```
-6. You can also run the provided tests using scarb.
-```bash
-scarb test
-```
-
-Deploying the `reflect.cairo` contract involves a two-step process: declaration and deployment. Below are the steps for both processes along with an explanation of the four arguments required by the contract's constructor.
 
 ### Arguments Explanation
 
