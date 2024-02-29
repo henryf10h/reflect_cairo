@@ -1,6 +1,6 @@
 // DECLARE // 
 
-starkli declare --watch target/dev/reflect_cairo_reflect_cairo_contracts_reflect_REFLECT.contract_class.json 
+starkli declare --watch target/dev/reflect_cairo_reflect_cairo_contracts_reflect_draft_REFLECT.contract_class.json 
 
 // DEPLOY //
 

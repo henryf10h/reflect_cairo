@@ -22,8 +22,7 @@ mod ReflectFactory {
     #[abi(embed_v0)]
     impl OwnableImpl = ownable_component::OwnableImpl<ContractState>;
     #[abi(embed_v0)]
-    impl OwnableCamelOnlyImpl =
-        ownable_component::OwnableCamelOnlyImpl<ContractState>;
+    impl OwnableCamelOnlyImpl = ownable_component::OwnableCamelOnlyImpl<ContractState>;
     impl InternalImpl = ownable_component::InternalImpl<ContractState>;
 
     #[event]
