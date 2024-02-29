@@ -47,13 +47,7 @@ mod REFLECT {
     // Events and other necessary structs 
 
     #[constructor]
-    fn constructor(
-        ref self: ContractState,
-        _name: felt252,
-        _symbol: felt252,
-        _supply: u256,
-        _creator: ContractAddress
-    ) {
+    fn constructor(ref self: ContractState, _name: felt252, _symbol: felt252, _supply: u256, _creator: ContractAddress) {
         self._name.write(_name);
         self._symbol.write(_symbol);
         self._decimals.write(9);
@@ -321,14 +315,10 @@ mod REFLECT {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        fn _approve(
-            ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
-        ) {
-            // Check for zero addresses
+        fn _approve(ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256) {
             assert(!owner.is_zero(), 'Approve from the zero addr');
             assert(!spender.is_zero(), 'Approve to the zero addr');
 
-            // Update the allowance
             self._allowances.write((owner, spender), amount);
 
             // Emit the Approval event
@@ -336,13 +326,7 @@ mod REFLECT {
         }
 
 
-        fn _transfer(
-            ref self: ContractState,
-            sender: ContractAddress,
-            recipient: ContractAddress,
-            amount: u256
-        ) {
-            // Check for zero addresses and amount > 0
+        fn _transfer(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256) {
             assert(!sender.is_zero(), 'Transfer from the zero address');
             assert(!recipient.is_zero(), 'Transfer to the zero address');
             assert(amount > 0, 'Must be greater than zero');
@@ -363,12 +347,7 @@ mod REFLECT {
             }
         }
 
-        fn _transfer_standard(
-            ref self: ContractState,
-            sender: ContractAddress,
-            recipient: ContractAddress,
-            tAmount: u256
-        ) {
+        fn _transfer_standard(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, tAmount: u256) {
             let (rAmount, rTransferAmount, rFee, tTransferAmount, tFee) = self._get_values(tAmount);
             self._rOwned.write(sender, self._rOwned.read(sender) - rAmount);
             self._rOwned.write(recipient, self._rOwned.read(recipient) + rTransferAmount);
@@ -422,9 +401,7 @@ mod REFLECT {
             return (t_transfer_amount, t_fee);
         }
 
-        fn _get_r_values(
-            self: @ContractState, t_amount: u256, t_fee: u256, current_rate: u256
-        ) -> (u256, u256, u256) {
+        fn _get_r_values(self: @ContractState, t_amount: u256, t_fee: u256, current_rate: u256) -> (u256, u256, u256) {
             let r_amount = t_amount * current_rate;
             let r_fee = t_fee * current_rate;
             let r_transfer_amount = r_amount - r_fee;
