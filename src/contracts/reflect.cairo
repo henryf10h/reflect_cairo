@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: MIT
-// Reflecter.Finance Smart Contract
 
 // Welcome to Reflecter.Finance - Innovating the DeFi Space!
-
-// This contract is part of the Reflecter.Finance ecosystem, a project dedicated
-// to bringing cutting-edge solutions and novel approaches to decentralized finance.
-// Our goal is to empower users with accessible, transparent, and secure financial tools.
+// We are a project dedicated to bringing cutting-edge solutions and novel approaches to decentralized finance.
 
 #[starknet::contract]
 mod REFLECT {
@@ -142,12 +138,7 @@ mod REFLECT {
         /// Moves `amount` tokens from `from` to `to` using the allowance mechanism.
         /// `amount` is then deducted from the caller's allowance.
         /// Emits a [Transfer] event.
-        fn transfer_from(
-            ref self: ContractState,
-            sender: ContractAddress,
-            recipient: ContractAddress,
-            amount: u256
-        ) -> bool {
+        fn transfer_from(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256) -> bool {
             let caller = get_caller_address();
             self._approve(sender, caller, self._allowances.read((sender, caller)) - amount);
             self._transfer(sender, recipient, amount);
@@ -165,9 +156,7 @@ mod REFLECT {
     /// Increases the allowance granted from the caller to `spender` by `added_value`.
     /// Emits an [Approval] event indicating the updated allowance.
     #[abi(embed_v0)]
-        fn increase_allowance(
-            ref self: ContractState, spender: ContractAddress, added_value: u256
-        ) -> bool {
+        fn increase_allowance(ref self: ContractState, spender: ContractAddress, added_value: u256) -> bool {
             let sender = get_caller_address();
             self._approve(sender, spender, self._allowances.read((sender, spender)) + added_value);
             true
@@ -176,9 +165,7 @@ mod REFLECT {
     /// Decreases the allowance granted from the caller to `spender` by `subtracted_value`.
     /// Emits an [Approval] event indicating the updated allowance.
     #[abi(embed_v0)]
-        fn decrease_allowance(
-            ref self: ContractState, spender: ContractAddress, subtracted_value: u256
-        ) -> bool {
+        fn decrease_allowance(ref self: ContractState, spender: ContractAddress, subtracted_value: u256) -> bool {
             let sender = get_caller_address();
             self._approve(sender, spender, self._allowances.read((sender, spender)) - subtracted_value);
             true
@@ -195,32 +182,22 @@ mod REFLECT {
             ERC20Impl::balance_of(self, account)
         }
 
-        fn transferFrom(
-            ref self: ContractState,
-            sender: ContractAddress,
-            recipient: ContractAddress,
-            amount: u256
-        ) -> bool {
+        fn transferFrom(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256) -> bool {
             ERC20Impl::transfer_from(ref self, sender, recipient, amount)
         }
     }
 
     #[abi(embed_v0)]
-        fn increaseAllowance(
-            ref self: ContractState, spender: ContractAddress, addedValue: u256
-        ) -> bool {
+        fn increaseAllowance(ref self: ContractState, spender: ContractAddress, addedValue: u256) -> bool {
             increase_allowance(ref self, spender, addedValue)
         }
 
     #[abi(embed_v0)]
-        fn decreaseAllowance(
-            ref self: ContractState, spender: ContractAddress, subtractedValue: u256
-        ) -> bool {
+        fn decreaseAllowance(ref self: ContractState, spender: ContractAddress, subtractedValue: u256) -> bool {
             decrease_allowance(ref self, spender, subtractedValue)
         }
 
-
-    // ... Reflection Logic ...
+    // Reflection Logic
 
     #[abi(embed_v0)]
     impl REFLECTImpl of IREFLECT<ContractState> {
@@ -241,7 +218,6 @@ mod REFLECT {
             if self._isExcluded.read(sender) {
                 return false;  // Excluded addresses cannot call this function
             }
-
             let (rAmount, _, _, _, _) = self._get_values(tAmount);
             self._rOwned.write(sender, self._rOwned.read(sender) - rAmount);
             self._rTotal.write(self._rTotal.read() - rAmount);
@@ -324,7 +300,6 @@ mod REFLECT {
             // Emit the Approval event
             self.emit(Approval { owner: owner, spender: spender, value: amount });
         }
-
 
         fn _transfer(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256) {
             assert(!sender.is_zero(), 'Transfer from the zero address');
@@ -447,5 +422,5 @@ mod REFLECT {
             return (rSupply, tSupply);
         }
     }
-// 
+
 }

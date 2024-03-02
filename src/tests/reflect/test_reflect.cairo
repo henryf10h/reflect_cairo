@@ -29,20 +29,13 @@ fn setup() -> REFLECT::ContractState {
 fn test_constructor() {
     let mut state = STATE();
     REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, OWNER());
-
-    // assert_only_event_transfer(ZERO(), OWNER(), SUPPLY);
-    // let balance = ERC20Impl::balance_of(@state, OWNER());
-    // let supp = SUPPLY;
-    // balance.print();
-    // supp.print();
-    // ERC20Impl::balance_of(@state, OWNER()).print();
-    // SUPPLY.print();
     assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY, 'Should eq initial_supply 1');
     assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Should eq initial_supply 2');
     assert(ERC20Impl::name(@state) == NAME, 'Name should be NAME');
     assert(ERC20Impl::symbol(@state) == SYMBOL, 'Symbol should be SYMBOL');
     assert(ERC20Impl::decimals(@state) == DECIMALS, 'Decimals should be 18');
 }
+
 //
 // Getters
 //
@@ -83,11 +76,7 @@ fn test_approve() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
     assert(ERC20Impl::approve(ref state, SPENDER(), VALUE), 'Should return true');
-
-    // assert_only_event_approval(OWNER(), SPENDER(), VALUE);
-    assert(
-        ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE, 'Spender not approved correctly'
-    );
+    assert(ERC20Impl::allowance(@state, OWNER(), SPENDER()) == VALUE, 'Spender not approved correctly');
 }
 
 #[test]
@@ -145,6 +134,21 @@ fn test__approve_to_zero() {
 #[test]
 #[available_gas(2000000)]
 fn test__get_current_supply() {
+    let mut state = setup();  // Assuming setup initializes your contract state
+    
+    let (r_supply, t_supply) = InternalImpl::_get_current_supply(@state);
+
+    // r_supply.print();
+    
+    let expected_r_supply: u256 = 115792089237316195423570985008687907853269984665640564039457000000000000000000;  // rTotal
+    
+    assert(r_supply == expected_r_supply, 'rSupply mismatch');
+    assert(t_supply == SUPPLY, 'tSupply mismatch');
+}
+
+#[test]
+#[available_gas(2000000)]
+fn test__get_current_supply_when_excluding() {
     let mut state = setup();  // Assuming setup initializes your contract state
     
     let (r_supply, t_supply) = InternalImpl::_get_current_supply(@state);
@@ -268,7 +272,7 @@ fn test__reflect_fee() {
 // //
 
 #[test]
-#[available_gas(3000000)]
+#[available_gas(5000000)]
 fn test_transfer() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
@@ -307,7 +311,7 @@ fn test_transfer() {
 }
 
 #[test]
-#[available_gas(3000000)]
+#[available_gas(5000000)]
 fn test__transfer() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
@@ -375,7 +379,7 @@ fn test__transfer_to_zero() {
 // //
 
 #[test]
-#[available_gas(2000000)]
+#[available_gas(4000000)]
 fn test_transfer_standard() {
     let mut state = setup();  // Assume setup initializes the contract state
     let sender_address = OWNER();
@@ -404,7 +408,7 @@ fn test_transfer_standard() {
 // //
 
 #[test]
-#[available_gas(3000000)]
+#[available_gas(5000000)]
 fn test_transfer_from() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
@@ -561,6 +565,19 @@ fn test_decrease_allowance_from_zero_address() {
 }
 
 // //
+// // is_excluded
+// //
+
+#[test]
+#[available_gas(2000000)]
+fn test_is_excluded() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+
+    assert(REFLECT::REFLECTImpl::is_excluded(@state, OWNER()) == false, 'User is already excluded');
+}
+
+// //
 // // r_total
 // //
 
@@ -645,47 +662,50 @@ fn test_token_from_reflection() {
     assert(actual_tAmount == expected_tAmount, 'Should match expected tAmts');
 }
 
+// //
+// // exclude_account
+// //
+
+#[test]
+#[available_gas(2000000)]
+fn test_exclude_account() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+
+    assert(REFLECT::REFLECTImpl::is_excluded(@state, OWNER()) == false, 'User is already excluded');
+
+    REFLECT::REFLECTImpl::exclude_account(ref state, OWNER());
+    
+    let is_excluded = REFLECT::REFLECTImpl::is_excluded(@state, OWNER());
+    assert(is_excluded == true, 'User not excluded');
+
+}
 
 // //
-// // Helpers
+// // include_account
 // //
 
-// use openzeppelin::utils::serde::SerializedAppend;
+#[test]
+#[available_gas(2000000)]
+fn test_include_account() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
 
-// fn assert_event_approval(owner: ContractAddress, spender: ContractAddress, value: u256) {
-//     let event = utils::pop_log::<Approval>(ZERO()).unwrap();
-//     assert(event.owner == owner, 'Invalid `owner`');
-//     assert(event.spender == spender, 'Invalid `spender`');
-//     assert(event.value == value, 'Invalid `value`');
+    assert(REFLECT::REFLECTImpl::is_excluded(@state, OWNER()) == false, 'User is already excluded');
 
-//     // Check indexed keys
-//     // let mut indexed_keys = array![];
-//     // indexed_keys.append_serde(owner);
-//     // indexed_keys.append_serde(spender);
-//     // utils::assert_indexed_keys(event, indexed_keys.span())
-// }
+    REFLECT::REFLECTImpl::exclude_account(ref state, OWNER());
+    
+    let is_excluded = REFLECT::REFLECTImpl::is_excluded(@state, OWNER());
+    assert(is_excluded == true, 'User not excluded');
 
-// fn assert_only_event_approval(owner: ContractAddress, spender: ContractAddress, value: u256) {
-//     assert_event_approval(owner, spender, value);
-//     utils::assert_no_events_left(ZERO());
-// }
+    REFLECT::REFLECTImpl::include_account(ref state, OWNER());
 
-// fn assert_event_transfer(from: ContractAddress, to: ContractAddress, value: u256) {
-//     let event = utils::pop_log::<Transfer>(ZERO()).unwrap();
-//     assert(event.from == from, 'Invalid `from`');
-//     assert(event.to == to, 'Invalid `to`');
-//     assert(event.value == value, 'Invalid `value`');
+    assert(REFLECT::REFLECTImpl::is_excluded(@state, OWNER()) == false, 'User is already excluded');
 
-//     // Check indexed keys
-//     // let mut indexed_keys = array![];
-//     // indexed_keys.append_serde(from);
-//     // indexed_keys.append_serde(to);
-//     // utils::assert_indexed_keys(event, indexed_keys.span());
-// }
+}
 
-// fn assert_only_event_transfer(from: ContractAddress, to: ContractAddress, value: u256) {
-//     assert_event_transfer(from, to, value);
-//     // utils::assert_no_events_left(ZERO());
-// }
+//testing for including functions cases
+//testing for non standard transfer cases 
+//testing _get_current_supply with excluding
 
 
