@@ -1,6 +1,6 @@
 use integer::BoundedInt;
 use reflect_cairo::tests::utils::constants::{
-    ZERO, OWNER, SPENDER, RECIPIENT, NAME, SYMBOL, DECIMALS, SUPPLY, VALUE, SUPPLY9DECIMALS
+    ZERO, OWNER, SPENDER, RECIPIENT, OTHER, NAME, SYMBOL, DECIMALS, SUPPLY, VALUE, SUPPLY9DECIMALS
 };
 use reflect_cairo::contracts::reflect::REFLECT::Approval;
 use reflect_cairo::contracts::reflect::REFLECT::ERC20Impl;
@@ -400,8 +400,89 @@ fn test_transfer_standard() {
     // Assert the balances have been updated correctly
     assert(new_balance_sender <= initial_balance_sender, 'Sender balance incorrect');
     assert(new_balance_recipient >= initial_balance_recipient, 'Recipient balance incorrect');
-}// todo: make it more rigorous
+}   // Hard to do '==' because of reflections. i.e. precision loss.
 
+// //
+// // _transfer_to_excluded
+// //
+
+#[test]
+#[available_gas(4000000)]
+fn test_transfer_to_excluded() {
+    let mut state = setup();  // Assume setup initializes the contract state
+    let sender_address = OWNER();
+    let recipient_address = RECIPIENT();
+    let transfer_amount: u256 = 1000000;
+
+    testing::set_caller_address(OWNER());
+    REFLECT::REFLECTImpl::exclude_account(ref state, RECIPIENT());
+
+    // Call the _transfer_standard function
+    InternalImpl::_transfer_to_excluded(ref state, sender_address, recipient_address, transfer_amount);
+
+    // Capture the new balances
+    let new_balance_sender = ERC20Impl::balance_of(@state, sender_address);
+    let new_balance_recipient = ERC20Impl::balance_of(@state, recipient_address);
+
+    // Assert the balances have been updated correctly
+    assert(new_balance_sender == 999999999999010000, 'Sender balance incorrect');
+    assert(new_balance_recipient == 990000, 'Recipient balance incorrect');
+}   
+
+// //
+// // _transfer_from_excluded
+// //
+
+#[test]
+#[available_gas(4000000)]
+fn test_transfer_from_excluded() {
+    let mut state = setup();  // Assume setup initializes the contract state
+    let sender_address = OWNER();
+    let recipient_address = RECIPIENT();
+    let transfer_amount: u256 = 1000000;
+
+    testing::set_caller_address(OWNER());
+    REFLECT::REFLECTImpl::exclude_account(ref state, OWNER());
+
+    // Call the _transfer_standard function
+    InternalImpl::_transfer_from_excluded(ref state, sender_address, recipient_address, transfer_amount);
+
+    // Capture the new balances
+    let new_balance_sender = ERC20Impl::balance_of(@state, sender_address);
+    let new_balance_recipient = ERC20Impl::balance_of(@state, recipient_address);
+
+    // Assert the balances have been updated correctly
+    assert(new_balance_sender == 999999999999000000, 'Sender balance incorrect');
+    assert(new_balance_recipient == 1000000, 'Recipient balance incorrect');
+}   
+
+// //
+// // _transfer_both_excluded
+// //
+
+#[test]
+#[available_gas(4000000)]
+fn test_transfer_both_excluded() {
+    let mut state = setup();  // Assume setup initializes the contract state
+    let sender_address = OWNER();
+    let recipient_address = RECIPIENT();
+    let transfer_amount: u256 = 1000000;
+
+    testing::set_caller_address(OWNER());
+    REFLECT::REFLECTImpl::exclude_account(ref state, OWNER());
+    REFLECT::REFLECTImpl::exclude_account(ref state, RECIPIENT());
+
+    // Call the _transfer_standard function
+    InternalImpl::_transfer_both_excluded(ref state, sender_address, recipient_address, transfer_amount);
+
+    // Capture the new balances
+    let new_balance_sender = ERC20Impl::balance_of(@state, sender_address);
+    let new_balance_recipient = ERC20Impl::balance_of(@state, recipient_address);
+
+    // Assert the balances have been updated correctly
+    assert(new_balance_sender == 999999999999000000, 'Sender balance incorrect');
+    assert(new_balance_recipient == 990000, 'Recipient balance incorrect');
+}   
 
 // //
 // // transfer_from
@@ -488,7 +569,7 @@ fn test_transfer_from_to_zero_address() {
     ERC20Impl::transfer_from(ref state, OWNER(), Zeroable::zero(), VALUE);
 }
 
-// 'Transfer from the zero address' is not being checked, instead 'u256_sub Overflow' does before.
+// 'Transfer from the zero address' is not being checked, instead 'u256_sub Overflow' does before. OZ criteria.
 #[test]
 #[available_gas(2000000)]
 #[should_panic(expected: ('u256_sub Overflow',))]
@@ -704,8 +785,26 @@ fn test_include_account() {
 
 }
 
-//testing for including functions cases
-//testing for non standard transfer cases 
+#[test]
+#[available_gas(2000000)]
+fn test_include_account_with_initial_3_excluded() {
+    let mut state = setup();
+    testing::set_caller_address(OWNER());
+
+    REFLECT::REFLECTImpl::exclude_account(ref state, OWNER());
+    REFLECT::REFLECTImpl::exclude_account(ref state, RECIPIENT());
+    REFLECT::REFLECTImpl::exclude_account(ref state, OTHER());
+    
+    let is_excluded = REFLECT::REFLECTImpl::is_excluded(@state, OWNER());
+    assert(is_excluded == true, 'User not excluded');
+
+    REFLECT::REFLECTImpl::include_account(ref state, OWNER());
+
+    assert(REFLECT::REFLECTImpl::is_excluded(@state, OWNER()) == false, 'User is already excluded');
+
+}//keep working...
+
+//testing for including functions cases. eg. exclude 3, include the first excluded. Get the the count to user mappings, and assert the values.
 //testing _get_current_supply with excluding
 
 
