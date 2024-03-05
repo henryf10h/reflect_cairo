@@ -1,3 +1,4 @@
+use reflect_cairo::contracts::reflect::REFLECT::{_excluded_indexContractMemberStateTrait, _excluded_usersContractMemberStateTrait};
 use integer::BoundedInt;
 use reflect_cairo::tests::utils::constants::{
     ZERO, OWNER, SPENDER, RECIPIENT, OTHER, NAME, SYMBOL, DECIMALS, SUPPLY, VALUE, SUPPLY9DECIMALS
@@ -791,11 +792,13 @@ fn test_include_account_with_initial_3_excluded() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
 
+    assert(state._excluded_index.read() == 0, 'Excluded index is wrong');
+
     REFLECT::REFLECTImpl::exclude_account(ref state, OWNER());
     REFLECT::REFLECTImpl::exclude_account(ref state, RECIPIENT());
     REFLECT::REFLECTImpl::exclude_account(ref state, OTHER());
 
-    assert(REFLECT::REFLECTImpl::excluded_by_count(@state, 0) == OWNER(), 'Should be the OWNER');
+    assert(state._excluded_users.read(0) == OWNER(), 'Should be the OWNER');
     
     let is_excluded = REFLECT::REFLECTImpl::is_excluded(@state, OWNER());
     assert(is_excluded == true, 'User not excluded');
@@ -803,13 +806,11 @@ fn test_include_account_with_initial_3_excluded() {
     REFLECT::REFLECTImpl::include_account(ref state, OWNER());
 
     assert(REFLECT::REFLECTImpl::is_excluded(@state, OWNER()) == false, 'User is already excluded');
-    assert(REFLECT::REFLECTImpl::excluded_count(@state) == 2, 'Excluded count is wrong');
-    assert(REFLECT::REFLECTImpl::excluded_by_count(@state, 0) == OTHER(), 'Should be OTHER');
-
-}//keep working...let's check the excluded count
+    assert(state._excluded_index.read() == 2, 'Excluded index is wrong');
+    assert(state._excluded_users.read(0) == OTHER(), 'Should be OTHER');
+}
 
 //testing for including functions cases. eg. exclude 3, include the first excluded. Get the the count to user mappings, and assert the values.
 //testing _get_current_supply with excluding
-//testing fn excluded_count
-//testing fn excluded_by_count
+
 

@@ -28,7 +28,7 @@ mod REFLECT {
         _t_owned: LegacyMap<ContractAddress, u256>,
         _allowances: LegacyMap<(ContractAddress, ContractAddress), u256>,
         _is_excluded: LegacyMap<ContractAddress, bool>,
-        _excluded_count: u256,
+        _excluded_index: u256,
         _excluded_users: LegacyMap<u256, ContractAddress>,
         _r_total: u256,
         _t_total: u256,
@@ -206,7 +206,7 @@ mod REFLECT {
         }
 
         fn excluded_count(self: @ContractState) -> u256{
-            self._excluded_count.read()
+            self._excluded_index.read()
         }
 
         fn excluded_by_count(self: @ContractState, index: u256) -> ContractAddress{
@@ -257,9 +257,9 @@ mod REFLECT {
                     self._t_owned.write(user, self.token_from_reflection(self._r_owned.read(user)));
                 }
                 self._is_excluded.write(user, true);
-                let count = self._excluded_count.read();
-                self._excluded_users.write(count, user);
-                self._excluded_count.write(count + 1);
+                let index = self._excluded_index.read();
+                self._excluded_users.write(index, user);
+                self._excluded_index.write(index + 1);
                 return true;
             }
             return false;
@@ -270,7 +270,7 @@ mod REFLECT {
             if self._is_excluded.read(user) == true {
                 self._t_owned.write(user, 0);  // Reset the _t_owned balance for the user
                 self._is_excluded.write(user, false);
-                let count = self._excluded_count.read();
+                let count = self._excluded_index.read();
                 let zero_address: ContractAddress = Zeroable::zero();  // Sentinel value for an empty slot
                 let mut i: u256 = 0;
                 loop {
@@ -283,7 +283,7 @@ mod REFLECT {
                             self._excluded_users.write(i, last_user);  // Move the last user to the current position
                         }
                         self._excluded_users.write(count - 1, zero_address);  // Set the last address to the zero address
-                        self._excluded_count.write(count - 1);  // Decrement the count
+                        self._excluded_index.write(count - 1);  // Decrement the count
                         break;
                     }
                     i = i + 1;
@@ -399,7 +399,7 @@ mod REFLECT {
         fn _get_current_supply(self: @ContractState) -> (u256, u256) {
             let mut rSupply = self._r_total.read();
             let mut tSupply = self._t_total.read();
-            let excludedCount = self._excluded_count.read();
+            let excludedCount = self._excluded_index.read();
 
             let mut i: u256 = 0;
             let mut earlyExit: bool = false;
