@@ -11,7 +11,7 @@ mod REFLECT {
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use zeroable::Zeroable;
-    use reflect_cairo::interfaces::rinterfacev2::IREFLECT;
+    use reflect_cairo::interfaces::rinterface::IREFLECT;
     use reflect_cairo::contracts::ownable::OwnableComponent as ownable_component;
 
     component!(path: ownable_component, storage: ownable, event: OwnableEvent);
@@ -203,14 +203,6 @@ mod REFLECT {
     impl REFLECTImpl of IREFLECT<ContractState> {
         fn is_excluded(self: @ContractState, account: ContractAddress) -> bool{
             self._is_excluded.read(account)
-        }
-
-        fn excluded_count(self: @ContractState) -> u256{
-            self._excluded_index.read()
-        }
-
-        fn excluded_by_count(self: @ContractState, index: u256) -> ContractAddress{
-            self._excluded_users.read(index)
         }
 
         fn r_total(self: @ContractState) -> u256 {

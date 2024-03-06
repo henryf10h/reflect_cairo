@@ -8,7 +8,6 @@ mod contracts {
 mod interfaces {
     mod rinterface;
     mod winterface;
-    mod rinterfacev2;
     mod ownable_interface;
 }
 #[cfg(test)]

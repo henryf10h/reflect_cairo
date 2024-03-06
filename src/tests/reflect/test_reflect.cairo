@@ -151,16 +151,30 @@ fn test__get_current_supply() {
 #[available_gas(2000000)]
 fn test__get_current_supply_when_excluding() {
     let mut state = setup();  // Assuming setup initializes your contract state
-    
-    let (r_supply, t_supply) = InternalImpl::_get_current_supply(@state);
+    testing::set_caller_address(OWNER());
 
-    // r_supply.print();
-    
+    REFLECT::REFLECTImpl::exclude_account(ref state, OWNER());
+    let (r_supply, t_supply) = InternalImpl::_get_current_supply(@state);
     let expected_r_supply: u256 = 115792089237316195423570985008687907853269984665640564039457000000000000000000;  // rTotal
     
     assert(r_supply == expected_r_supply, 'rSupply mismatch');
     assert(t_supply == SUPPLY, 'tSupply mismatch');
 }
+
+// #[test]
+// #[available_gas(3000000)]
+// fn test__get_current_supply_early_exit() {
+//     let mut state = setup();  // Assuming setup initializes your contract state
+//     testing::set_caller_address(OWNER());
+//     let transfer_value:u256 = 500000000000000000;
+
+//     ERC20Impl::transfer(ref state, RECIPIENT(), transfer_value);
+    
+//     REFLECT::REFLECTImpl::exclude_account(ref state, OWNER());
+//     let (r_supply, t_supply) = InternalImpl::_get_current_supply(@state);
+
+//     assert(r_supply );
+// }
 
 // //
 // // _get_rate
@@ -787,7 +801,7 @@ fn test_include_account() {
 }
 
 #[test]
-#[available_gas(3000000)]
+#[available_gas(4000000)]
 fn test_include_account_with_initial_3_excluded() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
@@ -799,6 +813,9 @@ fn test_include_account_with_initial_3_excluded() {
     REFLECT::REFLECTImpl::exclude_account(ref state, OTHER());
 
     assert(state._excluded_users.read(0) == OWNER(), 'Should be the OWNER');
+    assert(state._excluded_users.read(1) == RECIPIENT(), 'Should be the RECIPIENT');
+    assert(state._excluded_users.read(2) == OTHER(), 'Should be the OTHER');
+    assert(state._excluded_index.read() == 3, 'Excluded index is wrong');
     
     let is_excluded = REFLECT::REFLECTImpl::is_excluded(@state, OWNER());
     assert(is_excluded == true, 'User not excluded');
@@ -806,11 +823,11 @@ fn test_include_account_with_initial_3_excluded() {
     REFLECT::REFLECTImpl::include_account(ref state, OWNER());
 
     assert(REFLECT::REFLECTImpl::is_excluded(@state, OWNER()) == false, 'User is already excluded');
-    assert(state._excluded_index.read() == 2, 'Excluded index is wrong');
     assert(state._excluded_users.read(0) == OTHER(), 'Should be OTHER');
+    assert(state._excluded_users.read(1) == RECIPIENT(), 'Should be RECIPIENT');
+    assert(state._excluded_index.read() == 2, 'Excluded index is wrong');
 }
 
-//testing for including functions cases. eg. exclude 3, include the first excluded. Get the the count to user mappings, and assert the values.
 //testing _get_current_supply with excluding
 
 
