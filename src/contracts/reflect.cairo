@@ -389,38 +389,32 @@ mod REFLECT {
         }
 
         fn _get_current_supply(self: @ContractState) -> (u256, u256) {
-            let mut rSupply = self._r_total.read();
-            let mut tSupply = self._t_total.read();
-            let excludedCount = self._excluded_index.read();
+            let r_supply = self._r_total.read();
+            let t_supply = self._t_total.read();
+            let excluded_count = self._excluded_index.read();
 
-            let mut i: u256 = 0;
-            let mut earlyExit: bool = false;
-            loop {
-                if i >= excludedCount {
-                    break;
+            self._supply(r_supply, t_supply, excluded_count, 0)
+        }
+
+        fn _supply(self: @ContractState, r_supply: u256, t_supply: u256, excluded_count: u256, i: u256,) -> (u256, u256) {
+            if i >= excluded_count {
+                if r_supply < (self._r_total.read() / self._t_total.read()) {
+                    return (self._r_total.read(), self._t_total.read());
                 }
+                return (r_supply, t_supply);
+            }
 
-                let excludedAddress = self._excluded_users.read(i);
-                let r_ownedValue = self._r_owned.read(excludedAddress);
-                let t_ownedValue = self._t_owned.read(excludedAddress);
+            let excluded_address = self._excluded_users.read(i);
+            let r_owned_value = self._r_owned.read(excluded_address);
+            let t_owned_value = self._t_owned.read(excluded_address);
 
-                if r_ownedValue > rSupply || t_ownedValue > tSupply {
-                    earlyExit = true;
-                    break;
-                }
-
-                rSupply = rSupply - r_ownedValue;
-                tSupply = tSupply - t_ownedValue;
-
-                i = i + 1;
-            };
-
-            if earlyExit || rSupply < (self._r_total.read() / self._t_total.read()) {
+            if r_owned_value > r_supply || t_owned_value > t_supply {
                 return (self._r_total.read(), self._t_total.read());
             }
 
-            return (rSupply, tSupply);
+            self._supply(r_supply - r_owned_value, t_supply - t_owned_value, excluded_count, i + 1)
         }
+
     }
 
 }
