@@ -48,7 +48,7 @@ mod REFLECT {
         self._symbol.write(_symbol);
         self._decimals.write(9);
         self.ownable.initializer(_creator);
-        let MAX: u256 = BoundedInt::max(); // 2^256 - 1
+        let MAX: u256 = BoundedInt::max(); 
         self._t_total.write(_supply);
         self._r_total.write(MAX - (MAX % self._t_total.read()));
         self._r_owned.write(_creator, self._r_total.read());
@@ -260,30 +260,14 @@ mod REFLECT {
         fn include_account(ref self: ContractState, user: ContractAddress) -> bool {
             self.ownable.assert_only_owner();
             if self._is_excluded.read(user) == true {
-                self._t_owned.write(user, 0);  // Reset the _t_owned balance for the user
+                self._t_owned.write(user, 0); // Reset the _t_owned balance for the user
                 self._is_excluded.write(user, false);
-                let count = self._excluded_index.read();
-                let zero_address: ContractAddress = Zeroable::zero();  // Sentinel value for an empty slot
-                let mut i: u256 = 0;
-                loop {
-                    if i >= count {
-                        break;
-                    }
-                    if self._excluded_users.read(i) == user {
-                        if i != count - 1 {
-                            let last_user = self._excluded_users.read(count - 1);
-                            self._excluded_users.write(i, last_user);  // Move the last user to the current position
-                        }
-                        self._excluded_users.write(count - 1, zero_address);  // Set the last address to the zero address
-                        self._excluded_index.write(count - 1);  // Decrement the count
-                        break;
-                    }
-                    i = i + 1;
-                };
+                let count = self._excluded_index.read(); 
+                self._include_account(user, count, 0);
                 return true;
             }
             return false;
-        } 
+        }
 
     }
 
@@ -413,6 +397,24 @@ mod REFLECT {
             }
 
             self._supply(r_supply - r_owned_value, t_supply - t_owned_value, excluded_count, i + 1)
+        }
+
+        fn _include_account(ref self: ContractState, user: ContractAddress, count: u256, i: u256) {
+            if i >= count {
+                return;
+            }
+
+            if self._excluded_users.read(i) == user {
+                if i != count - 1 {
+                    let last_user = self._excluded_users.read(count - 1);
+                    self._excluded_users.write(i, last_user); // Move the last user to the current position
+                }
+                self._excluded_users.write(count - 1, Zeroable::zero()); // Set the last address to the zero address
+                self._excluded_index.write(count - 1); // Decrement the count
+                return;
+            }
+
+            self._include_account(user, count, i + 1);
         }
 
     }

@@ -11,5 +11,5 @@
 - `test_transfer_to_excluded`: 3188720
 
 Notes:
-- The recursive version generally consumes more gas compared to the loop version.
+- The recursive version generally consumes less gas compared to the loop version.
 - The gas usage measurements were obtained using the latest version of the Cairo compiler.

@@ -296,6 +296,7 @@ mod ERC20WRAPPERV0 {
             self.emit(Transfer { from: sender, to: recipient, value: amount - fee });
         }
 
+        //todo: adding exclusion cases
         fn _get_current_supply(self: @ContractState) -> (u256, u256) {
             let rSupply = self._rTokenSupply.read();
             let tSupply = self._tTokenSupply.read();
