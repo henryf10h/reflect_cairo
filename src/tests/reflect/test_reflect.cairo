@@ -1,7 +1,7 @@
 use reflect_cairo::contracts::reflect::REFLECT::{_excluded_indexContractMemberStateTrait, _excluded_usersContractMemberStateTrait};
 use integer::BoundedInt;
 use reflect_cairo::tests::utils::constants::{
-    ZERO, OWNER, SPENDER, RECIPIENT, OTHER, NAME, SYMBOL, DECIMALS, SUPPLY, VALUE, SUPPLY9DECIMALS
+    ZERO, OWNER, SPENDER, RECIPIENT, OTHER, NAME, SYMBOL, DECIMALS, SUPPLY, VALUE, SUPPLY9DECIMALS, FEE
 };
 use reflect_cairo::contracts::reflect::REFLECT::Approval;
 use reflect_cairo::contracts::reflect::REFLECT::ERC20Impl;
@@ -21,7 +21,7 @@ fn STATE() -> REFLECT::ContractState {
 
 fn setup() -> REFLECT::ContractState {
     let mut state = STATE();
-    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, OWNER());
+    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, FEE, OWNER());
     state
 }
 
@@ -29,7 +29,7 @@ fn setup() -> REFLECT::ContractState {
 #[available_gas(20000000)]
 fn test_constructor() {
     let mut state = STATE();
-    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, OWNER());
+    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, FEE, OWNER());
     assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY, 'Should eq initial_supply 1');
     assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Should eq initial_supply 2');
     assert(ERC20Impl::name(@state) == NAME, 'Name should be NAME');
@@ -45,7 +45,7 @@ fn test_constructor() {
 #[available_gas(2000000)]
 fn test_total_supply() {
     let mut state = STATE();
-    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, OWNER());
+    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, FEE, OWNER());
     assert(ERC20Impl::total_supply(@state) == SUPPLY, 'Should eq SUPPLY');
 }
 
@@ -53,7 +53,7 @@ fn test_total_supply() {
 #[available_gas(2000000)]
 fn test_balance_of() {
     let mut state = STATE();
-    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, OWNER());
+    REFLECT::constructor(ref state, NAME, SYMBOL, SUPPLY, FEE, OWNER());
     assert(ERC20Impl::balance_of(@state, OWNER()) == SUPPLY, 'Should eq SUPPLY');
 }
 
@@ -184,19 +184,20 @@ fn test__get_rate() {
 #[test]
 #[available_gas(2000000)]
 fn test__get_t_values() {
-    let mut state = setup();  // Assuming setup initializes your contract state
+    let mut state = setup();
 
-    let t_amount:u256 = 1000000;
-    let fee:u256 = t_amount/100;
+    let t_amount: u256 = 1000000;
+    // New fee calculation in pips
+    let fee: u256 = (t_amount * FEE) / 10000;  // FEE is in pips
 
     let (t_transfer_amount, t_fee) = InternalImpl::_get_t_values(@state, t_amount);
 
-    let expected_t_transfer_amount:u256 = t_amount - fee;  // Corrected this line
-    let tTransferAmount:u256 = t_transfer_amount;
+    let expected_t_transfer_amount: u256 = t_amount - fee;
+    let tTransferAmount: u256 = t_transfer_amount;
 
     assert(t_fee == fee, 'Incorrect t_fee');
     assert(tTransferAmount == expected_t_transfer_amount, 'Incorrect t_transfer_amount');
-} 
+}
 
 
 #[test]

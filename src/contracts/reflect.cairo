@@ -3,6 +3,8 @@
 // Welcome to Reflecter.Finance - Innovating the DeFi Space!
 // We are a project dedicated to bringing cutting-edge solutions and novel approaches to decentralized finance.
 
+/// Fee rate in pips (e.g., 1000 = 10%, 100 = 1%).
+
 #[starknet::contract]
 mod REFLECT {
     use integer::BoundedInt;
@@ -36,6 +38,7 @@ mod REFLECT {
         _name: felt252,
         _symbol: felt252,
         _decimals: u8,
+        _fee: u256,
         #[substorage(v0)]
         ownable: ownable_component::Storage
     }
@@ -43,10 +46,11 @@ mod REFLECT {
     // Events and other necessary structs 
 
     #[constructor]
-    fn constructor(ref self: ContractState, _name: felt252, _symbol: felt252, _supply: u256, _creator: ContractAddress) {
+    fn constructor(ref self: ContractState, _name: felt252, _symbol: felt252, _supply: u256, _fee: u256, _creator: ContractAddress) {
         self._name.write(_name);
         self._symbol.write(_symbol);
         self._decimals.write(9);
+        self._fee.write(_fee);
         self.ownable.initializer(_creator);
         let MAX: u256 = BoundedInt::max(); 
         self._t_total.write(_supply);
@@ -355,7 +359,7 @@ mod REFLECT {
         }
 
         fn _get_t_values(self: @ContractState, t_amount: u256) -> (u256, u256) {
-            let t_fee = t_amount / 100;
+            let t_fee = (t_amount * self._fee.read()) / 10000;  // Division by 10000 for pip conversion
             let t_transfer_amount = t_amount - t_fee;
             return (t_transfer_amount, t_fee);
         }
