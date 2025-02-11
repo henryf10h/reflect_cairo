@@ -1,5 +1,5 @@
-use reflect_cairo::contracts::reflect::REFLECT::{_excluded_indexContractMemberStateTrait, _excluded_usersContractMemberStateTrait};
-use integer::BoundedInt;
+// use reflect_cairo::contracts::reflect::REFLECT::{_excluded_indexContractMemberStateTrait, _excluded_usersContractMemberStateTrait};
+use core::num::traits::{Bounded};
 use reflect_cairo::tests::utils::constants::{
     ZERO, OWNER, SPENDER, RECIPIENT, OTHER, NAME, SYMBOL, DECIMALS, SUPPLY, VALUE, SUPPLY9DECIMALS, FEE
 };
@@ -534,13 +534,13 @@ fn test_transfer_from() {
 fn test_transfer_from_doesnt_consume_infinite_allowance() {
     let mut state = setup();
     testing::set_caller_address(OWNER());
-    ERC20Impl::approve(ref state, SPENDER(), BoundedInt::max());
+    ERC20Impl::approve(ref state, SPENDER(), Bounded::<u256>::MAX);
 
     testing::set_caller_address(SPENDER());
     ERC20Impl::transfer_from(ref state, OWNER(), RECIPIENT(), VALUE);
 
     assert(
-        ERC20Impl::allowance(@state, OWNER(), SPENDER()) == BoundedInt::max() - VALUE,
+        ERC20Impl::allowance(@state, OWNER(), SPENDER()) == Bounded::<u256>::MAX - VALUE,
         'Allowance is not infinite'
     );
 }

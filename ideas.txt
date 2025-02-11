@@ -8,12 +8,14 @@ starkli deploy 0x01625ee23023cb85bb5718b6ac40f56fd478d24e1a63d250353417aba66974c
 
 // INVOKE //
 
-starkli invoke 0x0236ef6623486d982b293dc7c32090e49a12f0c95d851f6637925641bb26e57d create_token str:test2 str:tst2 u256:1234567890987654321 0x052E6AD8187767eF41F2F3bc225D33d31B37DD9BBEE7B628F4b6b16b90D293EC --rpc https://starknet-goerli.infura.io/v3/cb9c230f999e41d2b06c125c0daf71a0
-
+starkli deploy 0x004648be364d877b0c279d53ade9fa5efb5ea03ae7b7c5230e58715067765d08 --watch str:AAA str:AAA u256:100000000000000000 u256:100  0x072F0D2391F7ce9103D31a64b6A36e0Fe8d32f908D2e183A02d9D46403b21ce2 --network sepolia
 ///
 
-class_hash = 0x076f2df0b976e466d9d11f4b549b17b73e567d70d587110ac1ebcfac059b013e
+class_hash = 0x004648be364d877b0c279d53ade9fa5efb5ea03ae7b7c5230e58715067765d08
+
+factory_contract sepolia = 0x050d3df81b920d3e608c4f7aeb67945a830413f618a1cf486bdcce66a395109c
 
 deploy factory!!! -> pass the contract to refleyer!!! -> pass ABI to refleyer
+
 
 

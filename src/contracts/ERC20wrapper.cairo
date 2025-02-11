@@ -1,6 +1,7 @@
 #[starknet::contract]
 mod ERC20WRAPPERV0 {
-    use integer::BoundedInt;
+    use core::num::traits::{Bounded};
+    use starknet::storage::Map;
     use reflect_cairo::interfaces::rinterface::IERC20;
     use starknet::ContractAddress;
     use starknet::get_caller_address;
@@ -18,9 +19,9 @@ mod ERC20WRAPPERV0 {
 
     #[storage]
     struct Storage {
-        _rTokenBalance: LegacyMap<ContractAddress, u256>,
-        _tTokenBalance: LegacyMap<ContractAddress, u256>,
-        _allowances: LegacyMap<(ContractAddress, ContractAddress), u256>,
+        _rTokenBalance: Map<ContractAddress, u256>,
+        _tTokenBalance: Map<ContractAddress, u256>,
+        _allowances: Map<(ContractAddress, ContractAddress), u256>,
         _rTokenSupply: u256,
         _tTokenSupply: u256,
         _tFeeTotal: u256,
@@ -31,8 +32,6 @@ mod ERC20WRAPPERV0 {
         #[substorage(v0)]
         reentrancy_guard: ReentrancyGuardComponent::Storage
     }
-
-    // ... Events and other necessary structs ...
 
     #[constructor]
     fn constructor(
@@ -75,10 +74,6 @@ mod ERC20WRAPPERV0 {
         spender: ContractAddress,
         value: u256
     }
-
-    //
-    // External
-    //
 
     #[abi(embed_v0)]
     impl ERC20Impl of IERC20<ContractState> {
@@ -176,8 +171,6 @@ mod ERC20WRAPPERV0 {
         true
     }
 
-    // ... Reflection logic ...
-
     #[abi(embed_v0)]
     impl ERC20WRAPPERImpl of IERC20WRAPPER<ContractState> {
 
@@ -255,8 +248,6 @@ mod ERC20WRAPPERV0 {
         }
 
     }
-
-    // ... Internal functions ...
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {

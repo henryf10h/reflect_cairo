@@ -7,7 +7,8 @@
 
 #[starknet::contract]
 mod REFLECT {
-    use integer::BoundedInt;
+    use starknet::storage::Map;
+    use core::num::traits::{Bounded};
     use reflect_cairo::interfaces::rinterface::IERC20;
     use reflect_cairo::interfaces::rinterface::IERC20CamelOnly;
     use starknet::ContractAddress;
@@ -26,12 +27,12 @@ mod REFLECT {
 
     #[storage]
     struct Storage {
-        _r_owned: LegacyMap<ContractAddress, u256>,
-        _t_owned: LegacyMap<ContractAddress, u256>,
-        _allowances: LegacyMap<(ContractAddress, ContractAddress), u256>,
-        _is_excluded: LegacyMap<ContractAddress, bool>,
+        _r_owned: Map<ContractAddress, u256>,
+        _t_owned: Map<ContractAddress, u256>,
+        _allowances: Map<(ContractAddress, ContractAddress), u256>,
+        _is_excluded: Map<ContractAddress, bool>,
         _excluded_index: u256,
-        _excluded_users: LegacyMap<u256, ContractAddress>,
+        _excluded_users: Map<u256, ContractAddress>,
         _r_total: u256,
         _t_total: u256,
         _t_fee_total: u256,
@@ -50,9 +51,10 @@ mod REFLECT {
         self._name.write(_name);
         self._symbol.write(_symbol);
         self._decimals.write(9);
+        assert(_fee <= 10000, 'Fee exceeds maximum allowed');
         self._fee.write(_fee);
         self.ownable.initializer(_creator);
-        let MAX: u256 = BoundedInt::max(); 
+        let MAX: u256 = Bounded::<u256>::MAX; 
         self._t_total.write(_supply);
         self._r_total.write(MAX - (MAX % self._t_total.read()));
         self._r_owned.write(_creator, self._r_total.read());
