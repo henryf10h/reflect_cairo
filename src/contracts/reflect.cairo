@@ -51,7 +51,7 @@ mod REFLECT {
         self._name.write(_name);
         self._symbol.write(_symbol);
         self._decimals.write(9);
-        assert(_fee <= 10000, 'Fee exceeds maximum allowed');
+        assert(_fee <= 1000, 'Fee exceeds maximum allowed'); // 10% fee cap
         self._fee.write(_fee);
         self.ownable.initializer(_creator);
         let MAX: u256 = Bounded::<u256>::MAX; 
